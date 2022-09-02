@@ -45,7 +45,10 @@ import org.apache.commons.logging.LogFactory;
  * @see org.springframework.test.context.cache.ContextCache#MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME
  */
 public abstract class SpringProperties {
-
+	//Spring  properties 资源管理
+	//通过静态块 从当前跟路径和系统默认路径初始化 本地 localProperties 资源
+	// setProperty 时，只往本地localProperties 添加
+    //getProperty 时，先获取本地localProperties，再向System.getProperty 寻找，所以覆盖系统资源配置
 	private static final String PROPERTIES_RESOURCE_LOCATION = "spring.properties";
 
 	private static final Log logger = LogFactory.getLog(SpringProperties.class);
