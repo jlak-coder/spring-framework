@@ -40,10 +40,13 @@ public class PropertySourceTests {
 	public void equals() {
 		Map<String, Object> map1 = new HashMap<String, Object>() {{ put("a", "b"); }};
 		Map<String, Object> map2 = new HashMap<String, Object>() {{ put("c", "d"); }};
+		//Properties 类，键/值对
 		Properties props1 = new Properties() {{ setProperty("a", "b"); }};
 		Properties props2 = new Properties() {{ setProperty("c", "d"); }};
 
+		//键/map
 		MapPropertySource mps = new MapPropertySource("mps", map1);
+		//PropertySource equals,只比较name 是否相同,除非重写
 		assertThat(mps, equalTo(mps));
 
 		assertThat(new MapPropertySource("x", map1).equals(new MapPropertySource("x", map1)), is(true));
