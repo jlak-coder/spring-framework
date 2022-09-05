@@ -24,6 +24,7 @@ package org.springframework.core.env;
  * @since 3.1
  * @see Environment
  * @see PropertySourcesPropertyResolver
+ * 属解析接口，返回属性是否可解析，默认string属性解析，指定返回类型属性解析，占位替换解析功能接口
  */
 public interface PropertyResolver {
 

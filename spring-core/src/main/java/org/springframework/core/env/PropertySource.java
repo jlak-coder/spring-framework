@@ -55,7 +55,9 @@ import org.springframework.util.ObjectUtils;
  * @see MutablePropertySources
  * @see org.springframework.context.annotation.PropertySource
  */
-public abstract class PropertySource<T> {//Spring 名称/值属性对抽象基类
+//Spring 名称/值属性对抽象基类
+//
+public abstract class PropertySource<T> {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
