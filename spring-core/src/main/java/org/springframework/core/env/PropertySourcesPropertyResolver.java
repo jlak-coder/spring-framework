@@ -32,6 +32,7 @@ import org.springframework.util.ClassUtils;
  */
 public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 
+	//属性资源集合，实现类 MutablePropertySources
 	private final PropertySources propertySources;
 
 

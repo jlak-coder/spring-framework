@@ -30,6 +30,8 @@ import static org.junit.Assert.*;
  *
  * @author Chris Beams
  * @since 3.1
+ *
+ * 命令行属性
  */
 public class JOptCommandLinePropertySourceTests {
 
@@ -39,7 +41,9 @@ public class JOptCommandLinePropertySourceTests {
 		parser.accepts("foo").withRequiredArg();
 		OptionSet options = parser.parse("--foo=bar");
 
+
 		PropertySource<?> ps = new JOptCommandLinePropertySource(options);
+		System.out.println(ps.getProperty("foo"));
 		assertThat((String)ps.getProperty("foo"), equalTo("bar"));
 	}
 

@@ -31,6 +31,7 @@ public class MutablePropertySourcesTests {
 
 	@Test
 	public void test() {
+		//MutablePropertySources  保证相同属性名 只存在一个
 		MutablePropertySources sources = new MutablePropertySources();
 		sources.addLast(new MockPropertySource("b").withProperty("p1", "bValue"));
 		sources.addLast(new MockPropertySource("d").withProperty("p1", "dValue"));

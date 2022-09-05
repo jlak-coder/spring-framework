@@ -92,6 +92,7 @@ public class CustomEnvironmentTests {
 		assertThat(env.acceptsProfiles("d1"), is(false));
 		assertThat(env.acceptsProfiles("a1", "a2"), is(true));
 
+		// setActiveProfiles 会清除当前的activeProfiles 重新塞入
 		env.setActiveProfiles();
 		assertThat(env.acceptsProfiles("d1"), is(true));
 		assertThat(env.acceptsProfiles("a1", "a2"), is(false));

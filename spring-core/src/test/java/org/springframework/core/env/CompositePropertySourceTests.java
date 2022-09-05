@@ -35,7 +35,7 @@ public class CompositePropertySourceTests {
 		PropertySource<?> p2 = new MapPropertySource("p2", Collections.emptyMap());
 		PropertySource<?> p3 = new MapPropertySource("p3", Collections.emptyMap());
 		//混和键/值资源类
-		// CompositePropertySource 含有一个set 存储不同 propertySource
+		// CompositePropertySource 含有一个LinkedHashSet 存储不同 propertySource
 		CompositePropertySource composite = new CompositePropertySource("c");
 		composite.addPropertySource(p2);
 		composite.addPropertySource(p3);

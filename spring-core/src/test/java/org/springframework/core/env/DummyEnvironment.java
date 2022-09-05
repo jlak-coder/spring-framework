@@ -16,6 +16,9 @@
 
 package org.springframework.core.env;
 
+/**
+ * 模拟环境变量
+ */
 public class DummyEnvironment implements Environment {
 
 	@Override
