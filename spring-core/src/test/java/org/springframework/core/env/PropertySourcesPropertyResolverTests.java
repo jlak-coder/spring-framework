@@ -273,6 +273,7 @@ public class PropertySourcesPropertyResolverTests {
 		MutablePropertySources propertySources = new MutablePropertySources();
 		propertySources.addFirst(new MockPropertySource().withProperty("some.class", SomeType.class.getName()));
 		PropertyResolver resolver = new PropertySourcesPropertyResolver(propertySources);
+		//getPropertyAsClass  获取值为class 或者class类名的类
 		assertTrue(resolver.getPropertyAsClass("some.class", SomeType.class).equals(SomeType.class));
 	}
 
