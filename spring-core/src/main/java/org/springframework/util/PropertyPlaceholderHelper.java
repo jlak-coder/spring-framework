@@ -141,6 +141,7 @@ public class PropertyPlaceholderHelper {
 					throw new IllegalArgumentException(
 							"Circular placeholder reference '" + originalPlaceholder + "' in property definitions");
 				}
+				//递归调用，处理最底层的占位，向上处理的时候，如果找不到，替换占位失败（处理多重使用占位的情况）
 				// Recursive invocation, parsing placeholders contained in the placeholder key.
 				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);
 				// Now obtain the value for the fully resolved key...
@@ -157,6 +158,7 @@ public class PropertyPlaceholderHelper {
 					}
 				}
 				if (propVal != null) {
+					//可能 获取的到的资源也设置占位，相同处理
 					// Recursive invocation, parsing placeholders contained in the
 					// previously resolved placeholder value.
 					propVal = parseStringValue(propVal, placeholderResolver, visitedPlaceholders);

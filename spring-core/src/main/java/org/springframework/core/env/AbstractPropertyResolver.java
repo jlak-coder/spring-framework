@@ -250,10 +250,12 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	 * @since 4.3.5
 	 */
 	@SuppressWarnings("unchecked")
+	//模版方法
 	protected <T> T convertValueIfNecessary(Object value, Class<T> targetType) {
 		if (targetType == null) {
 			return (T) value;
 		}
+		//自定义 转换接口
 		ConversionService conversionServiceToUse = this.conversionService;
 		if (conversionServiceToUse == null) {
 			// Avoid initialization of shared DefaultConversionService if

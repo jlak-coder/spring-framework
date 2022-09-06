@@ -188,6 +188,7 @@ public class PropertySourcesPropertyResolverTests {
 		assertThat(propertyResolver.getRequiredProperty("exists", String[].class), equalTo(new String[] { "abc", "123" }));
 
 		try {
+			// getRequiredProperty 如果属性不存在，抛出异常
 			propertyResolver.getRequiredProperty("bogus", String[].class);
 			fail("expected IllegalStateException");
 		}
