@@ -119,6 +119,9 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * appropriate.
 	 * @see #customizePropertySources(MutablePropertySources)
 	 */
+	/**
+	 * 抽象类构造器，虽然抽象类无法实例化，但是子类实例化时，还是会调用自动调用抽象类的无参数构造器
+	 */
 	public AbstractEnvironment() {
 		customizePropertySources(this.propertySources);
 		if (logger.isDebugEnabled()) {
