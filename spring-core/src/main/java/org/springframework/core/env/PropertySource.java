@@ -133,6 +133,7 @@ public abstract class PropertySource<T> {
 	@Override
 	public boolean equals(Object obj) {
 		return (this == obj || (obj instanceof PropertySource &&
+				//键相同，即表示属性资源相同
 				ObjectUtils.nullSafeEquals(this.name, ((PropertySource<?>) obj).name)));
 	}
 
@@ -201,6 +202,7 @@ public abstract class PropertySource<T> {
 	 * @see org.springframework.web.context.support.ServletContextPropertySource
 	 */
 	public static class StubPropertySource extends PropertySource<Object> {
+		//只塞入键，值为空对象，获取值时返回都为null
 
 		public StubPropertySource(String name) {
 			super(name, new Object());

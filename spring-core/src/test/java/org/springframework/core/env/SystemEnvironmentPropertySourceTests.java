@@ -44,6 +44,7 @@ public class SystemEnvironmentPropertySourceTests {
 	@Before
 	public void setUp() {
 		envMap = new HashMap<String, Object>();
+		//SystemEnvironmentPropertySource 转化封装系统属性
 		ps = new SystemEnvironmentPropertySource("sysEnv", envMap);
 	}
 

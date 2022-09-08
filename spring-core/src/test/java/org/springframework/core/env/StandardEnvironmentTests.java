@@ -308,6 +308,7 @@ public class StandardEnvironmentTests {
 		assertThat(environment.acceptsProfiles("pd"), is(false));
 		environment.setDefaultProfiles("pd");
 		assertThat(environment.acceptsProfiles("pd"), is(true));
+		//活动的配置文件不为空，则默认的不生效
 		environment.setActiveProfiles("p1");
 		assertThat(environment.acceptsProfiles("pd"), is(false));
 		assertThat(environment.acceptsProfiles("p1"), is(true));
@@ -329,6 +330,7 @@ public class StandardEnvironmentTests {
 
 	@Test
 	public void environmentSubclass_withCustomProfileValidation() {
+		//匿名类的方式，重写validateProfile 方法
 		ConfigurableEnvironment env = new AbstractEnvironment() {
 			@Override
 			protected void validateProfile(String profile) {
@@ -354,6 +356,7 @@ public class StandardEnvironmentTests {
 
 	@Test
 	public void suppressGetenvAccessThroughSystemProperty() {
+		//系统资源配置
 		System.setProperty("spring.getenv.ignore", "true");
 		assertTrue(environment.getSystemEnvironment().isEmpty());
 		System.clearProperty("spring.getenv.ignore");
@@ -361,6 +364,7 @@ public class StandardEnvironmentTests {
 
 	@Test
 	public void suppressGetenvAccessThroughSpringProperty() {
+		//SpringProperties spring属性配置
 		SpringProperties.setProperty("spring.getenv.ignore", "true");
 		assertTrue(environment.getSystemEnvironment().isEmpty());
 		SpringProperties.setProperty("spring.getenv.ignore", null);
@@ -500,6 +504,7 @@ public class StandardEnvironmentTests {
 				try {
 					Field field = cl.getDeclaredField("m");
 					field.setAccessible(true);
+					//返回被包装前的原始值
 					Object obj = field.get(env);
 					if (obj != null && obj.getClass().getName().equals("java.lang.ProcessEnvironment$StringEnvironment")) {
 						return (Map<String, String>) obj;
