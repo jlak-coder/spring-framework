@@ -37,6 +37,7 @@ public class CompositePropertySourceTests {
 		//混和键/值资源类
 		// CompositePropertySource 含有一个LinkedHashSet 存储不同 propertySource
 		CompositePropertySource composite = new CompositePropertySource("c");
+		Object source = composite.getSource();
 		composite.addPropertySource(p2);
 		composite.addPropertySource(p3);
 		composite.addPropertySource(p1);

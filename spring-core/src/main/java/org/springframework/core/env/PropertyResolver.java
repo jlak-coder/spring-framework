@@ -29,12 +29,15 @@ package org.springframework.core.env;
 public interface PropertyResolver {
 
 	/**
+	 * 判断给定的资源键是否可用于解析
 	 * Return whether the given property key is available for resolution,
 	 * i.e. if the value for the given key is not {@code null}.
 	 */
 	boolean containsProperty(String key);
 
 	/**
+	 *
+	 * 返回指定的资源键的属性值，结果为String 类型，无法解析，返回null
 	 * Return the property value associated with the given key,
 	 * or {@code null} if the key cannot be resolved.
 	 * @param key the property name to resolve
@@ -45,6 +48,7 @@ public interface PropertyResolver {
 	String getProperty(String key);
 
 	/**
+	 * 返回给定属性键关联的属性值，如果不村子啊，返回默认值
 	 * Return the property value associated with the given key, or
 	 * {@code defaultValue} if the key cannot be resolved.
 	 * @param key the property name to resolve
@@ -55,6 +59,7 @@ public interface PropertyResolver {
 	String getProperty(String key, String defaultValue);
 
 	/**
+	 *  返回指定的资源键的属性值，结果为指定 类型，无法解析，返回null
 	 * Return the property value associated with the given key,
 	 * or {@code null} if the key cannot be resolved.
 	 * @param key the property name to resolve
@@ -64,6 +69,7 @@ public interface PropertyResolver {
 	<T> T getProperty(String key, Class<T> targetType);
 
 	/**
+	 * 返回指定的资源键的属性值，结果为指定类型，无法解析，返回默认值
 	 * Return the property value associated with the given key,
 	 * or {@code defaultValue} if the key cannot be resolved.
 	 * @param key the property name to resolve
@@ -74,6 +80,7 @@ public interface PropertyResolver {
 	<T> T getProperty(String key, Class<T> targetType, T defaultValue);
 
 	/**
+	 * 返会资源键值对应的class 类
 	 * Convert the property value associated with the given key to a {@code Class}
 	 * of type {@code T} or {@code null} if the key cannot be resolved.
 	 * @throws org.springframework.core.convert.ConversionException if class specified
@@ -87,6 +94,7 @@ public interface PropertyResolver {
 	<T> Class<T> getPropertyAsClass(String key, Class<T> targetType);
 
 	/**
+	 * 返回指定的资源键的属性值，结果为String 类型，无法解析，抛出异常
 	 * Return the property value associated with the given key (never {@code null}).
 	 * @throws IllegalStateException if the key cannot be resolved
 	 * @see #getRequiredProperty(String, Class)
@@ -94,6 +102,7 @@ public interface PropertyResolver {
 	String getRequiredProperty(String key) throws IllegalStateException;
 
 	/**
+	 * 返回指定的资源键的属性值，结果为指定 类型，无法解析，抛出异常
 	 * Return the property value associated with the given key, converted to the given
 	 * targetType (never {@code null}).
 	 * @throws IllegalStateException if the given key cannot be resolved
@@ -101,6 +110,8 @@ public interface PropertyResolver {
 	<T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException;
 
 	/**
+	 * 解析文本中的 ${...}占位符，用getProperty 方法解析的属性值替换
+	 *     *没有默认值的的占位符将会被忽略并保持不变
 	 * Resolve ${...} placeholders in the given text, replacing them with corresponding
 	 * property values as resolved by {@link #getProperty}. Unresolvable placeholders with
 	 * no default value are ignored and passed through unchanged.
@@ -112,7 +123,8 @@ public interface PropertyResolver {
 	 */
 	String resolvePlaceholders(String text);
 
-	/**
+	/**解析文本中的 ${...}占位符，用getProperty 方法解析的属性值替换
+	 *没有默认值的不可解析的占位符抛出异常
 	 * Resolve ${...} placeholders in the given text, replacing them with corresponding
 	 * property values as resolved by {@link #getProperty}. Unresolvable placeholders with
 	 * no default value will cause an IllegalArgumentException to be thrown.
