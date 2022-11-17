@@ -48,7 +48,7 @@ public interface PropertyResolver {
 	String getProperty(String key);
 
 	/**
-	 * 返回给定属性键关联的属性值，如果不村子啊，返回默认值
+	 * 返回给定属性键关联的属性值，如果不存在，返回默认值
 	 * Return the property value associated with the given key, or
 	 * {@code defaultValue} if the key cannot be resolved.
 	 * @param key the property name to resolve
