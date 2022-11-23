@@ -381,7 +381,7 @@ public class PropertySourcesPropertyResolverTests {
 			.withProperty("pL", "${pR}")                    // cyclic reference left
 			.withProperty("pR", "${pL}")                    // cyclic reference right
 		);
-		ConfigurablePropertyResolver pr = new PropertySourcesPropertyResolver(ps);
+		PropertyResolver pr = new PropertySourcesPropertyResolver(ps);
 		assertThat(pr.getProperty("p1"), equalTo("v1"));
 		assertThat(pr.getProperty("p2"), equalTo("v2"));
 		assertThat(pr.getProperty("p3"), equalTo("v1:v2"));
