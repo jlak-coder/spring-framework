@@ -138,6 +138,8 @@ public class PropertyPlaceholderHelper {
 				String placeholder = result.substring(startIndex + this.placeholderPrefix.length(), endIndex);
 				String originalPlaceholder = placeholder;
 				if (!visitedPlaceholders.add(originalPlaceholder)) {
+					//因为，获取的到的资源也设置占位，递归处理，可能会造成死循环
+					//new MockPropertySource().withProperty("key", "${key}")
 					throw new IllegalArgumentException(
 							"Circular placeholder reference '" + originalPlaceholder + "' in property definitions");
 				}
@@ -168,6 +170,7 @@ public class PropertyPlaceholderHelper {
 					}
 					startIndex = result.indexOf(this.placeholderPrefix, startIndex + propVal.length());
 				}
+				//如果忽略无法解析的替代值，则跳到下一个需要替换的开始位置
 				else if (this.ignoreUnresolvablePlaceholders) {
 					// Proceed with unprocessed value.
 					startIndex = result.indexOf(this.placeholderPrefix, endIndex + this.placeholderSuffix.length());
@@ -186,6 +189,12 @@ public class PropertyPlaceholderHelper {
 		return result.toString();
 	}
 
+	/**
+	 * 支持 类似 ${{{key}}},这样的嵌套解析
+	 * @param buf
+	 * @param startIndex
+	 * @return
+	 */
 	private int findPlaceholderEndIndex(CharSequence buf, int startIndex) {
 		int index = startIndex + this.placeholderPrefix.length();
 		int withinNestedPlaceholder = 0;

@@ -335,6 +335,7 @@ public abstract class StringUtils {
 	}
 
 	/**
+	 * 从指定的索引位置，检测子字符串是否包含在给定的字符串中
 	 * Test whether the given string matches the given substring
 	 * at the given index.
 	 * @param str the original string (or StringBuilder)
@@ -352,6 +353,7 @@ public abstract class StringUtils {
 		}
 		return true;
 	}
+
 
 	/**
 	 * Count the occurrences of the substring {@code sub} in string {@code str}.

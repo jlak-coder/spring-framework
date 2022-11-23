@@ -200,9 +200,10 @@ public class PropertySourcesPropertyResolverTests {
 	@Test
 	public void resolvePlaceholders() {
 		MutablePropertySources propertySources = new MutablePropertySources();
-		propertySources.addFirst(new MockPropertySource().withProperty("key", "value"));
+		propertySources.addFirst(new MockPropertySource().withProperty("key", "${key}"));
 		PropertyResolver resolver = new PropertySourcesPropertyResolver(propertySources);
-		assertThat(resolver.resolvePlaceholders("Replace this ${key}"), equalTo("Replace this value"));
+		System.out.println(resolver.resolvePlaceholders("Replace this ${key1:sb}"));
+		//assertThat(resolver.resolvePlaceholders("Replace this ${{key}${key}}"), equalTo("Replace this value"));
 	}
 
 	@Test
