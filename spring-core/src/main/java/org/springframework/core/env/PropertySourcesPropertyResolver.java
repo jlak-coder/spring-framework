@@ -32,11 +32,12 @@ import org.springframework.util.ClassUtils;
  */
 public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 
-	//属性资源集合，实现类 MutablePropertySources
+	//根据属性资源PropertySource 集合，（实现类 MutablePropertySources）解析属性值的PropertyResolver实现
 	private final PropertySources propertySources;
 
 
 	/**
+	 * 根据给定的一组属性资源，创建属性解析器
 	 * Create a new resolver against the given property sources.
 	 * @param propertySources the set of {@link PropertySource} objects to use
 	 */
@@ -44,7 +45,11 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 		this.propertySources = propertySources;
 	}
 
-
+	/**
+	 * 遍历每个属性源，判断是否包含指定的key
+	 * @param key
+	 * @return
+	 */
 	@Override
 	public boolean containsProperty(String key) {
 		if (this.propertySources != null) {
@@ -57,6 +62,11 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 		return false;
 	}
 
+	/**
+	 * 查询指定key的资源是否存在，默认解析占位符
+	 * @param key the property name to resolve
+	 * @return
+	 */
 	@Override
 	public String getProperty(String key) {
 		return getProperty(key, String.class, true);
@@ -74,17 +84,22 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 
 	protected <T> T getProperty(String key, Class<T> targetValueType, boolean resolveNestedPlaceholders) {
 		if (this.propertySources != null) {
+			//遍历每个资源
 			for (PropertySource<?> propertySource : this.propertySources) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Searching for key '" + key + "' in PropertySource '" +
 							propertySource.getName() + "'");
 				}
+				//从没哥资源中找到指定key对应的value
 				Object value = propertySource.getProperty(key);
 				if (value != null) {
+					//如果对应的value存在，且value是string雷诺，且需要解析占位
 					if (resolveNestedPlaceholders && value instanceof String) {
+						//解析value中的占位符
 						value = resolveNestedPlaceholders((String) value);
 					}
 					logKeyFound(key, propertySource, value);
+					//如果需要的化，进行类型转换
 					return convertValueIfNecessary(value, targetValueType);
 				}
 			}
