@@ -68,6 +68,7 @@ public class AnnotationUtilsTests {
 
 	@Test
 	public void findMethodAnnotationOnLeaf() throws Exception {
+		//在该实现类的的注解
 		Method m = Leaf.class.getMethod("annotatedOnLeaf");
 		assertNotNull(m.getAnnotation(Order.class));
 		assertNotNull(getAnnotation(m, Order.class));
@@ -77,6 +78,7 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findMethodAnnotationWithAnnotationOnMethodInInterface() throws Exception {
+		//在接口上的注解
 		Method m = Leaf.class.getMethod("fromInterfaceImplementedByRoot");
 		// @Order is not @Inherited
 		assertNull(m.getAnnotation(Order.class));
@@ -89,8 +91,10 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findMethodAnnotationWithMetaAnnotationOnLeaf() throws Exception {
+		//在一个方法上查到不存在的注解
 		Method m = Leaf.class.getMethod("metaAnnotatedOnLeaf");
 		assertNull(m.getAnnotation(Order.class));
+		//从提供的 Method中获取单个 Annotation ，annotationType其中注释在方法上存在或元存在。
 		assertNotNull(getAnnotation(m, Order.class));
 		assertNotNull(findAnnotation(m, Order.class));
 	}
@@ -100,7 +104,9 @@ public class AnnotationUtilsTests {
 	public void findMethodAnnotationWithMetaMetaAnnotationOnLeaf() throws Exception {
 		Method m = Leaf.class.getMethod("metaMetaAnnotatedOnLeaf");
 		assertNull(m.getAnnotation(Component.class));
+		//从提供的 Method中获取单个 Annotation ，annotationType其中注释在方法上存在或元存在。
 		assertNull(getAnnotation(m, Component.class));
+		//findAnnotation 支持，直接
 		assertNotNull(findAnnotation(m, Component.class));
 	}
 
