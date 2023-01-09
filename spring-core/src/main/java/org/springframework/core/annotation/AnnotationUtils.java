@@ -179,7 +179,9 @@ public abstract class AnnotationUtils {
 	 */
 	public static <A extends Annotation> A getAnnotation(AnnotatedElement annotatedElement, Class<A> annotationType) {
 		try {
+			//获取该AnnotatedElement（method implements AnnotatedElement ）上的指定类型的注解
 			A annotation = annotatedElement.getAnnotation(annotationType);
+			//如果不存在，则去寻找
 			if (annotation == null) {
 				for (Annotation metaAnn : annotatedElement.getAnnotations()) {
 					annotation = metaAnn.annotationType().getAnnotation(annotationType);
@@ -211,6 +213,7 @@ public abstract class AnnotationUtils {
 	 * @see #getAnnotation(AnnotatedElement, Class)
 	 */
 	public static <A extends Annotation> A getAnnotation(Method method, Class<A> annotationType) {
+		//寻找 被桥接的方法，如果找不到，返回原method
 		Method resolvedMethod = BridgeMethodResolver.findBridgedMethod(method);
 		return getAnnotation((AnnotatedElement) resolvedMethod, annotationType);
 	}
@@ -519,6 +522,7 @@ public abstract class AnnotationUtils {
 	private static <A extends Annotation> A findAnnotation(
 			AnnotatedElement annotatedElement, Class<A> annotationType, Set<Annotation> visited) {
 		try {
+			//
 			Annotation[] anns = annotatedElement.getDeclaredAnnotations();
 			for (Annotation ann : anns) {
 				if (ann.annotationType() == annotationType) {
@@ -561,11 +565,13 @@ public abstract class AnnotationUtils {
 		if (annotationType == null) {
 			return null;
 		}
-
+        //注解 缓存key
 		AnnotationCacheKey cacheKey = new AnnotationCacheKey(method, annotationType);
+		//从findAnnotationCache 缓存中寻找
 		A result = (A) findAnnotationCache.get(cacheKey);
 
 		if (result == null) {
+			//先寻找method 的被桥接的方法
 			Method resolvedMethod = BridgeMethodResolver.findBridgedMethod(method);
 			result = findAnnotation((AnnotatedElement) resolvedMethod, annotationType);
 			if (result == null) {

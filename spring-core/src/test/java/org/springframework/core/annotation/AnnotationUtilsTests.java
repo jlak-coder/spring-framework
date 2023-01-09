@@ -81,10 +81,13 @@ public class AnnotationUtilsTests {
 		//在接口上的注解
 		Method m = Leaf.class.getMethod("fromInterfaceImplementedByRoot");
 		// @Order is not @Inherited
+		//在Method方法的注解上无法找到，不继承 接口的注解
 		assertNull(m.getAnnotation(Order.class));
 		// getAnnotation() does not search on interfaces
+		//getAnnotation 方法不在接口层面搜索
 		assertNull(getAnnotation(m, Order.class));
 		// findAnnotation() does search on interfaces
+		//findAnnotation 在接口层面搜索
 		assertNotNull(findAnnotation(m, Order.class));
 	}
 
@@ -106,7 +109,7 @@ public class AnnotationUtilsTests {
 		assertNull(m.getAnnotation(Component.class));
 		//从提供的 Method中获取单个 Annotation ，annotationType其中注释在方法上存在或元存在。
 		assertNull(getAnnotation(m, Component.class));
-		//findAnnotation 支持，直接
+		//findAnnotation 支持
 		assertNotNull(findAnnotation(m, Component.class));
 	}
 
