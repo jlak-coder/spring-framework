@@ -120,6 +120,7 @@ public abstract class AnnotationUtils {
 	private static final Map<AnnotationCacheKey, Boolean> metaPresentCache =
 			new ConcurrentReferenceHashMap<AnnotationCacheKey, Boolean>(256);
 
+	//含注解的方法缓存
 	private static final Map<Class<?>, Boolean> annotatedInterfaceCache =
 			new ConcurrentReferenceHashMap<Class<?>, Boolean>(256);
 
@@ -580,22 +581,28 @@ public abstract class AnnotationUtils {
 			if (result == null) {
 				result = searchOnInterfaces(method, annotationType, method.getDeclaringClass().getInterfaces());
 			}
-
+			//向父类寻找
+			//获取方法的定义的类
 			Class<?> clazz = method.getDeclaringClass();
 			while (result == null) {
+				//向上遍历父类
 				clazz = clazz.getSuperclass();
 				if (clazz == null || Object.class == clazz) {
 					break;
 				}
 				try {
+					//在父类寻找相等的方法
 					Method equivalentMethod = clazz.getDeclaredMethod(method.getName(), method.getParameterTypes());
+					//寻找该方法是否是桥接方法，寻找不到返回本方法
 					Method resolvedEquivalentMethod = BridgeMethodResolver.findBridgedMethod(equivalentMethod);
+					//遍历查找注解
 					result = findAnnotation((AnnotatedElement) resolvedEquivalentMethod, annotationType);
 				}
 				catch (NoSuchMethodException ex) {
 					// No equivalent method found
 				}
 				if (result == null) {
+					//在接口上寻找
 					result = searchOnInterfaces(method, annotationType, clazz.getInterfaces());
 				}
 			}
@@ -612,9 +619,12 @@ public abstract class AnnotationUtils {
 	private static <A extends Annotation> A searchOnInterfaces(Method method, Class<A> annotationType, Class<?>... ifcs) {
 		A annotation = null;
 		for (Class<?> ifc : ifcs) {
+			//接否是否含有注解
 			if (isInterfaceWithAnnotatedMethods(ifc)) {
 				try {
+					//在接接口找寻找目标方法
 					Method equivalentMethod = ifc.getMethod(method.getName(), method.getParameterTypes());
+					//再方法上查找指定注解
 					annotation = getAnnotation(equivalentMethod, annotationType);
 				}
 				catch (NoSuchMethodException ex) {
@@ -628,6 +638,11 @@ public abstract class AnnotationUtils {
 		return annotation;
 	}
 
+	/**
+	 * 方法上是否含有注解
+	 * @param ifc
+	 * @return
+	 */
 	static boolean isInterfaceWithAnnotatedMethods(Class<?> ifc) {
 		Boolean found = annotatedInterfaceCache.get(ifc);
 		if (found != null) {

@@ -113,6 +113,7 @@ public class AnnotationUtilsTests {
 
 	@Test
 	public void findMethodAnnotationOnRoot() throws Exception {
+		//父类上子类没有重写的方法，三个方法都可以寻找到
 		Method m = Leaf.class.getMethod("annotatedOnRoot");
 		assertNotNull(m.getAnnotation(Order.class));
 		assertNotNull(getAnnotation(m, Order.class));
@@ -122,11 +123,11 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findMethodAnnotationWithMetaAnnotationOnRoot() throws Exception {
-		//父类注解
+		//父类自定义注解
 		Method m = Leaf.class.getMethod("metaAnnotatedOnRoot");
-		//不支持深入遍历注解
+		//@Order getAnnotation 不支持深入遍历元注解
 		assertNull(m.getAnnotation(Order.class));
-		//支持
+		//getAnnotation支持向上遍历
 		assertNotNull(getAnnotation(m, Order.class));
 		//支持
 		assertNotNull(findAnnotation(m, Order.class));
