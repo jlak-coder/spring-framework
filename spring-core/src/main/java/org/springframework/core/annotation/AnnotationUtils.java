@@ -181,7 +181,7 @@ public abstract class AnnotationUtils {
 		try {
 			//获取该AnnotatedElement（method implements AnnotatedElement ）上的指定类型的注解
 			A annotation = annotatedElement.getAnnotation(annotationType);
-			//如果不存在，则去寻找
+			//如果不存在，则去寻找 annotatedElement 注解的元注解
 			if (annotation == null) {
 				for (Annotation metaAnn : annotatedElement.getAnnotations()) {
 					annotation = metaAnn.annotationType().getAnnotation(annotationType);
@@ -522,15 +522,18 @@ public abstract class AnnotationUtils {
 	private static <A extends Annotation> A findAnnotation(
 			AnnotatedElement annotatedElement, Class<A> annotationType, Set<Annotation> visited) {
 		try {
-			//
+			//遍历annotatedElement 上申明的注解，如果注解类型与查找的相同，返回
 			Annotation[] anns = annotatedElement.getDeclaredAnnotations();
 			for (Annotation ann : anns) {
 				if (ann.annotationType() == annotationType) {
 					return (A) ann;
 				}
 			}
+			//
 			for (Annotation ann : anns) {
+				//排除java 自带的注解，排除已遍历的注解
 				if (!isInJavaLangAnnotationPackage(ann) && visited.add(ann)) {
+					//递归检索注解上 注解
 					A annotation = findAnnotation((AnnotatedElement) ann.annotationType(), annotationType, visited);
 					if (annotation != null) {
 						return annotation;

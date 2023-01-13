@@ -23,10 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -68,7 +65,7 @@ public class AnnotationUtilsTests {
 
 	@Test
 	public void findMethodAnnotationOnLeaf() throws Exception {
-		//在该实现类的的注解
+		//在该实现类的的注解，最底层叶子节点上的注解
 		Method m = Leaf.class.getMethod("annotatedOnLeaf");
 		assertNotNull(m.getAnnotation(Order.class));
 		assertNotNull(getAnnotation(m, Order.class));
@@ -97,8 +94,9 @@ public class AnnotationUtilsTests {
 		//在一个方法上查到不存在的注解
 		Method m = Leaf.class.getMethod("metaAnnotatedOnLeaf");
 		assertNull(m.getAnnotation(Order.class));
-		//从提供的 Method中获取单个 Annotation ，annotationType其中注释在方法上存在或元存在。
+		//从提供的 Method中获取单个 Annotation ,向上遍历注解的上的自定义注解
 		assertNotNull(getAnnotation(m, Order.class));
+		//findAnnotation 在接口层面搜索
 		assertNotNull(findAnnotation(m, Order.class));
 	}
 
@@ -107,7 +105,7 @@ public class AnnotationUtilsTests {
 	public void findMethodAnnotationWithMetaMetaAnnotationOnLeaf() throws Exception {
 		Method m = Leaf.class.getMethod("metaMetaAnnotatedOnLeaf");
 		assertNull(m.getAnnotation(Component.class));
-		//从提供的 Method中获取单个 Annotation ，annotationType其中注释在方法上存在或元存在。
+		//从提供的 Method中获取单个 Annotation ，向上遍历注解的上的自定义注解。
 		assertNull(getAnnotation(m, Component.class));
 		//findAnnotation 支持
 		assertNotNull(findAnnotation(m, Component.class));
@@ -124,9 +122,13 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findMethodAnnotationWithMetaAnnotationOnRoot() throws Exception {
+		//父类注解
 		Method m = Leaf.class.getMethod("metaAnnotatedOnRoot");
+		//不支持深入遍历注解
 		assertNull(m.getAnnotation(Order.class));
+		//支持
 		assertNotNull(getAnnotation(m, Order.class));
+		//支持
 		assertNotNull(findAnnotation(m, Order.class));
 	}
 
@@ -134,6 +136,8 @@ public class AnnotationUtilsTests {
 	public void findMethodAnnotationOnRootButOverridden() throws Exception {
 		Method m = Leaf.class.getMethod("overrideWithoutNewAnnotation");
 		assertNull(m.getAnnotation(Order.class));
+		System.out.println(Arrays.toString(m.getAnnotations()));
+		System.out.println(Arrays.toString(m.getDeclaredAnnotations()));
 		assertNull(getAnnotation(m, Order.class));
 		assertNotNull(findAnnotation(m, Order.class));
 	}
