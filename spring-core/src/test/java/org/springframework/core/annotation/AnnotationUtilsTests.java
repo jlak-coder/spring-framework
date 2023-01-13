@@ -135,8 +135,11 @@ public class AnnotationUtilsTests {
 
 	@Test
 	public void findMethodAnnotationOnRootButOverridden() throws Exception {
+		//子类重写，且子类无注解
 		Method m = Leaf.class.getMethod("overrideWithoutNewAnnotation");
+		//
 		assertNull(m.getAnnotation(Order.class));
+		//只有类级别的注解会被继承得到，对于其他对象而言，getAnnotation() 方法与 getDeclaredAnnotation() 方法作用相同
 		System.out.println(Arrays.toString(m.getAnnotations()));
 		System.out.println(Arrays.toString(m.getDeclaredAnnotations()));
 		assertNull(getAnnotation(m, Order.class));
