@@ -142,7 +142,9 @@ public class AnnotationUtilsTests {
 		//只有类级别的注解会被继承得到，对于其他对象而言，getAnnotation() 方法与 getDeclaredAnnotation() 方法作用相同
 		System.out.println(Arrays.toString(m.getAnnotations()));
 		System.out.println(Arrays.toString(m.getDeclaredAnnotations()));
+		//getAnnotation 不在父类寻找
 		assertNull(getAnnotation(m, Order.class));
+		//
 		assertNotNull(findAnnotation(m, Order.class));
 	}
 
@@ -152,6 +154,10 @@ public class AnnotationUtilsTests {
 		assertNull(findAnnotation(m, Order.class));
 	}
 
+	/**
+	 * 桥接方法上的 注解寻找
+	 * @throws Exception
+	 */
 	@Test
 	public void findMethodAnnotationOnBridgeMethod() throws Exception {
 		Method bridgeMethod = SimpleFoo.class.getMethod("something", Object.class);
