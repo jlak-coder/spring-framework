@@ -190,6 +190,7 @@ public class AnnotationUtilsTests {
 		assertNull(getAnnotation(bridgedMethod, Order.class));
 		// AnnotationUtils.findAnnotation(Method, Class<A>) will not find an annotation on
 		// the bridge method for a bridged method.
+		//bridgedMethod 无法在父类找到实现的接口方法
 		assertNull(findAnnotation(bridgedMethod, Order.class));
 
 		assertNotNull(bridgedMethod.getAnnotation(Transactional.class));
@@ -200,6 +201,7 @@ public class AnnotationUtilsTests {
 	@Test
 	public void findMethodAnnotationFromInterface() throws Exception {
 		Method method = ImplementsInterfaceWithAnnotatedMethod.class.getMethod("foo");
+		//findAnnotation 会搜索方法的 直接接口接口方法
 		Order order = findAnnotation(method, Order.class);
 		assertNotNull(order);
 	}
@@ -207,6 +209,7 @@ public class AnnotationUtilsTests {
 	@Test
 	public void findMethodAnnotationFromInterfaceOnSuper() throws Exception {
 		Method method = SubOfImplementsInterfaceWithAnnotatedMethod.class.getMethod("foo");
+		//findAnnotation 会搜索方法的 父类接口方法
 		Order order = findAnnotation(method, Order.class);
 		assertNotNull(order);
 	}
@@ -214,6 +217,7 @@ public class AnnotationUtilsTests {
 	@Test
 	public void findMethodAnnotationFromInterfaceWhenSuperDoesNotImplementMethod() throws Exception {
 		Method method = SubOfAbstractImplementsInterfaceWithAnnotatedMethod.class.getMethod("foo");
+		//父类没有实现方法 可以搜索到接口的注解
 		Order order = findAnnotation(method, Order.class);
 		assertNotNull(order);
 	}
@@ -221,6 +225,7 @@ public class AnnotationUtilsTests {
 	// @since 4.1.2
 	@Test
 	public void findClassAnnotationFavorsMoreLocallyDeclaredComposedAnnotationsOverAnnotationsOnInterfaces() {
+		//在类上 搜索 注解
 		Component component = findAnnotation(ClassWithLocalMetaAnnotationAndMetaAnnotatedInterface.class, Component.class);
 		assertNotNull(component);
 		assertEquals("meta2", component.value());

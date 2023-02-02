@@ -579,6 +579,7 @@ public abstract class AnnotationUtils {
 			Method resolvedMethod = BridgeMethodResolver.findBridgedMethod(method);
 			result = findAnnotation((AnnotatedElement) resolvedMethod, annotationType);
 			if (result == null) {
+				//查找 method 的接口方法
 				result = searchOnInterfaces(method, annotationType, method.getDeclaringClass().getInterfaces());
 			}
 			//向父类寻找
@@ -719,7 +720,7 @@ public abstract class AnnotationUtils {
 		return result;
 	}
 
-	/**
+	/**查找类上的 注解
 	 * Perform the search algorithm for {@link #findAnnotation(Class, Class)},
 	 * avoiding endless recursion by tracking which annotations have already
 	 * been <em>visited</em>.
@@ -731,12 +732,14 @@ public abstract class AnnotationUtils {
 	@SuppressWarnings("unchecked")
 	private static <A extends Annotation> A findAnnotation(Class<?> clazz, Class<A> annotationType, Set<Annotation> visited) {
 		try {
+			//类上定义的注解
 			Annotation[] anns = clazz.getDeclaredAnnotations();
 			for (Annotation ann : anns) {
 				if (ann.annotationType() == annotationType) {
 					return (A) ann;
 				}
 			}
+			//遍历直接定义的注解，递归查询在元注解上查找
 			for (Annotation ann : anns) {
 				if (!isInJavaLangAnnotationPackage(ann) && visited.add(ann)) {
 					A annotation = findAnnotation(ann.annotationType(), annotationType, visited);
@@ -751,13 +754,14 @@ public abstract class AnnotationUtils {
 			return null;
 		}
 
+		//在接口上递归查找
 		for (Class<?> ifc : clazz.getInterfaces()) {
 			A annotation = findAnnotation(ifc, annotationType, visited);
 			if (annotation != null) {
 				return annotation;
 			}
 		}
-
+		//递归查找父类上的注解
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass == null || Object.class == superclass) {
 			return null;
