@@ -30,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.subpackage.NonPublicAnnotatedClass;
 import org.springframework.stereotype.Component;
@@ -144,12 +145,13 @@ public class AnnotationUtilsTests {
 		System.out.println(Arrays.toString(m.getDeclaredAnnotations()));
 		//getAnnotation 不在父类寻找
 		assertNull(getAnnotation(m, Order.class));
-		//
+		//父类和接口 都寻找
 		assertNotNull(findAnnotation(m, Order.class));
 	}
 
 	@Test
 	public void findMethodAnnotationNotAnnotated() throws Exception {
+		//无注解方法上查询，查询不到
 		Method m = Leaf.class.getMethod("notAnnotated");
 		assertNull(findAnnotation(m, Order.class));
 	}
@@ -160,15 +162,21 @@ public class AnnotationUtilsTests {
 	 */
 	@Test
 	public void findMethodAnnotationOnBridgeMethod() throws Exception {
+		//桥接方法
 		Method bridgeMethod = SimpleFoo.class.getMethod("something", Object.class);
 		assertTrue(bridgeMethod.isBridge());
 
+		//在桥接方法寻找直接注解
 		assertNull(bridgeMethod.getAnnotation(Order.class));
+		//在桥接方法上寻找注解，并遍历元注解
 		assertNull(getAnnotation(bridgeMethod, Order.class));
+		//在桥接方法上寻找注解，并遍历元注解,搜索父类 和 接口
 		assertNotNull(findAnnotation(bridgeMethod, Order.class));
 
+		//是因为不同的编译器，可能会导致 桥编辑器生成的桥接方法对注解的处理结果不同，
+		// 所以需要BridgeMethodResolver.findBridgedMethod 进行处理，寻找原始方法
 		// Inconsistent behavior between javac and Eclipse compiler
-		// assertNotNull(bridgeMethod.getAnnotation(Transactional.class));
+		//assertNotNull(bridgeMethod.getAnnotation(Transactional.class));
 		assertNotNull(getAnnotation(bridgeMethod, Transactional.class));
 		assertNotNull(findAnnotation(bridgeMethod, Transactional.class));
 	}

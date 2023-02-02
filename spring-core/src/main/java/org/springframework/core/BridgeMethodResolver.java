@@ -47,6 +47,7 @@ import org.springframework.util.ReflectionUtils;
 public abstract class BridgeMethodResolver {
 
 	/**
+	 * 查找桥接方法的原始方法
 	 * Find the original method for the supplied {@link Method bridge Method}.
 	 * <p>It is safe to call this method passing in a non-bridge {@link Method} instance.
 	 * In such a case, the supplied {@link Method} instance is returned directly to the caller.
@@ -56,6 +57,7 @@ public abstract class BridgeMethodResolver {
 	 * if no more specific one could be found)
 	 */
 	public static Method findBridgedMethod(Method bridgeMethod) {
+		//如果不是桥接方法，直接返回该方法
 		if (bridgeMethod == null || !bridgeMethod.isBridge()) {
 			return bridgeMethod;
 		}
