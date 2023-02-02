@@ -248,11 +248,13 @@ public class AnnotationUtilsTests {
 	public void findClassAnnotationFavorsMoreLocallyDeclaredComposedAnnotationsOverInheritedComposedAnnotations() {
 		Component component = findAnnotation(SubSubClassWithInheritedMetaAnnotation.class, Component.class);
 		assertNotNull(component);
+		//查询到 立即返回
 		assertEquals("meta2", component.value());
 	}
 
 	@Test
 	public void findClassAnnotationOnMetaMetaAnnotatedClass() {
+		//findAnnotation 支持递归查询元注解
 		Component component = findAnnotation(MetaMetaAnnotatedClass.class, Component.class);
 		assertNotNull("Should find meta-annotation on composed annotation on class", component);
 		assertEquals("meta2", component.value());
