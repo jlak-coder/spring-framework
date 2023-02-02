@@ -234,6 +234,10 @@ public class AnnotationUtilsTests {
 	// @since 4.0.3
 	@Test
 	public void findClassAnnotationFavorsMoreLocallyDeclaredComposedAnnotationsOverInheritedAnnotations() {
+		//注解可以通过设置Inherited 继承
+		Transactional transactional0 = SubSubClassWithInheritedAnnotation.class.getAnnotation(Transactional.class);
+		assertNotNull(transactional0);
+		//类上的  这里是搜索父类 和 Inherited的性质无关
 		Transactional transactional = findAnnotation(SubSubClassWithInheritedAnnotation.class, Transactional.class);
 		assertNotNull(transactional);
 		assertTrue("readOnly flag for SubSubClassWithInheritedAnnotation", transactional.readOnly());
