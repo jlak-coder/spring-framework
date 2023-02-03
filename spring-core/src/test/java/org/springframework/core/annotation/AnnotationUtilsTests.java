@@ -276,6 +276,7 @@ public class AnnotationUtilsTests {
 
 	@Test
 	public void findClassAnnotationOnMetaCycleAnnotatedClassWithMissingTargetMetaAnnotation() {
+		//注解循环 依赖 测试
 		Component component = findAnnotation(MetaCycleAnnotatedClass.class, Component.class);
 		assertNull("Should not find @Component on MetaCycleAnnotatedClass", component);
 	}

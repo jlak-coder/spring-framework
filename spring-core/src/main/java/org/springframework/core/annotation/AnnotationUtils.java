@@ -726,7 +726,7 @@ public abstract class AnnotationUtils {
 	 * been <em>visited</em>.
 	 * @param clazz the class to look for annotations on
 	 * @param annotationType the type of annotation to look for
-	 * @param visited the set of annotations that have already been visited
+	 * @param visited the set of annotations that have already been visited,存储已经访问过的注解，解决循环依赖问题
 	 * @return the first matching annotation, or {@code null} if not found
 	 */
 	@SuppressWarnings("unchecked")
@@ -739,7 +739,7 @@ public abstract class AnnotationUtils {
 					return (A) ann;
 				}
 			}
-			//遍历直接定义的注解，递归查询在元注解上查找
+			//遍历直接定义的注解，递归查询在元注解上查找，visited 储存被访问过的注解，防止循环依赖
 			for (Annotation ann : anns) {
 				if (!isInJavaLangAnnotationPackage(ann) && visited.add(ann)) {
 					A annotation = findAnnotation(ann.annotationType(), annotationType, visited);
