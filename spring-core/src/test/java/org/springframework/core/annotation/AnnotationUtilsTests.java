@@ -284,6 +284,7 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findClassAnnotationOnInheritedAnnotationInterface() {
+		//在接口类上查找注解
 		Transactional tx = findAnnotation(InheritedAnnotationInterface.class, Transactional.class);
 		assertNotNull("Should find @Transactional on InheritedAnnotationInterface", tx);
 	}
@@ -291,6 +292,7 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findClassAnnotationOnSubInheritedAnnotationInterface() {
+		//在子接口上 寻找父类上的接口上的注解
 		Transactional tx = findAnnotation(SubInheritedAnnotationInterface.class, Transactional.class);
 		assertNotNull("Should find @Transactional on SubInheritedAnnotationInterface", tx);
 	}
@@ -298,6 +300,7 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findClassAnnotationOnSubSubInheritedAnnotationInterface() {
+		//在子接口上 查询父父类的注解
 		Transactional tx = findAnnotation(SubSubInheritedAnnotationInterface.class, Transactional.class);
 		assertNotNull("Should find @Transactional on SubSubInheritedAnnotationInterface", tx);
 	}
@@ -305,6 +308,7 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findClassAnnotationOnNonInheritedAnnotationInterface() {
+		//直接在接口上寻找
 		Order order = findAnnotation(NonInheritedAnnotationInterface.class, Order.class);
 		assertNotNull("Should find @Order on NonInheritedAnnotationInterface", order);
 	}
@@ -312,6 +316,7 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findClassAnnotationOnSubNonInheritedAnnotationInterface() {
+		//在父类接口查找
 		Order order = findAnnotation(SubNonInheritedAnnotationInterface.class, Order.class);
 		assertNotNull("Should find @Order on SubNonInheritedAnnotationInterface", order);
 	}
@@ -319,6 +324,7 @@ public class AnnotationUtilsTests {
 	// @since 4.2
 	@Test
 	public void findClassAnnotationOnSubSubNonInheritedAnnotationInterface() {
+		//多层 继承，在子类可以查询到父类注解
 		Order order = findAnnotation(SubSubNonInheritedAnnotationInterface.class, Order.class);
 		assertNotNull("Should find @Order on SubSubNonInheritedAnnotationInterface", order);
 	}
@@ -332,12 +338,16 @@ public class AnnotationUtilsTests {
 		// inherited class-level annotation; note: @Transactional is inherited
 		assertEquals(InheritedAnnotationInterface.class,
 				findAnnotationDeclaringClass(Transactional.class, InheritedAnnotationInterface.class));
+		//接口 clazz.getSuperclass() 无发向上查看父类
 		assertNull(findAnnotationDeclaringClass(Transactional.class, SubInheritedAnnotationInterface.class));
+		//
 		assertEquals(InheritedAnnotationClass.class,
 				findAnnotationDeclaringClass(Transactional.class, InheritedAnnotationClass.class));
+		//注解在父类，并查找到
 		assertEquals(InheritedAnnotationClass.class,
 				findAnnotationDeclaringClass(Transactional.class, SubInheritedAnnotationClass.class));
 
+		//getDeclaredAnnotations @Inherited 不生效
 		// non-inherited class-level annotation; note: @Order is not inherited,
 		// but findAnnotationDeclaringClass() should still find it on classes.
 		assertEquals(NonInheritedAnnotationInterface.class,
@@ -442,8 +452,10 @@ public class AnnotationUtilsTests {
 		assertFalse(isAnnotationInherited(Transactional.class, InheritedAnnotationInterface.class));
 		// isAnnotationInherited() does not currently traverse interface hierarchies.
 		// Thus the following, though perhaps counter intuitive, must be false:
+		//接口
 		assertFalse(isAnnotationInherited(Transactional.class, SubInheritedAnnotationInterface.class));
 		assertFalse(isAnnotationInherited(Transactional.class, InheritedAnnotationClass.class));
+		// 子类 且 父类有可继承注解
 		assertTrue(isAnnotationInherited(Transactional.class, SubInheritedAnnotationClass.class));
 
 		// non-inherited class-level annotation; note: @Order is not inherited

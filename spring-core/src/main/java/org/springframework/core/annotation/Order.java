@@ -59,7 +59,6 @@ import org.springframework.core.Ordered;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @Documented
-@Inherited
 public @interface Order {
 
 	/**

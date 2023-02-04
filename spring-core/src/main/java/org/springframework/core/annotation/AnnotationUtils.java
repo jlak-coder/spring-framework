@@ -720,7 +720,7 @@ public abstract class AnnotationUtils {
 		return result;
 	}
 
-	/**查找类上的 注解
+	/**查找类上的 注解，declaredAnnotations->metaAnnotations->接口注解->父类注解
 	 * Perform the search algorithm for {@link #findAnnotation(Class, Class)},
 	 * avoiding endless recursion by tracking which annotations have already
 	 * been <em>visited</em>.
@@ -770,6 +770,8 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 在类的继承层次中寻找一个存在的注解的类
+	 * 查找 Class在指定（包括指定本身）的继承层次结构中查找直接存在指定类型注释的第一个类
 	 * Find the first {@link Class} in the inheritance hierarchy of the
 	 * specified {@code clazz} (including the specified {@code clazz} itself)
 	 * on which an annotation of the specified {@code annotationType} is
@@ -803,6 +805,7 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 在指定（包括指定本身）的继承层次结构中查找第一个Class，其中至少有一个指定annotationTypes clazz clazz直接存在
 	 * Find the first {@link Class} in the inheritance hierarchy of the
 	 * specified {@code clazz} (including the specified {@code clazz} itself)
 	 * on which at least one of the specified {@code annotationTypes} is
@@ -840,6 +843,7 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 确定指定的 annotationType 注释是否在本地声明（即 直接存在）在提供的 clazz上。
 	 * Determine whether an annotation of the specified {@code annotationType}
 	 * is declared locally (i.e., <em>directly present</em>) on the supplied
 	 * {@code clazz}.
@@ -874,6 +878,8 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 确定指定的annotationType注释是否存在于所提供的clazz注释上，并且是否被继承（即，不直接存在）。
+	 * 不会搜索元注释
 	 * Determine whether an annotation of the specified {@code annotationType}
 	 * is <em>present</em> on the supplied {@code clazz} and is
 	 * {@linkplain java.lang.annotation.Inherited inherited} (i.e., not
