@@ -1137,6 +1137,7 @@ public abstract class AnnotationUtils {
 
 		for (Method method : getAttributeMethods(annotationType)) {
 			try {
+				//method invoke
 				Object attributeValue = method.invoke(annotation);
 				Object defaultValue = method.getDefaultValue();
 				if (defaultValue != null && ObjectUtils.nullSafeEquals(attributeValue, defaultValue)) {
@@ -2106,7 +2107,7 @@ public abstract class AnnotationUtils {
 
 		private final boolean isAliasPair;
 
-		/**
+		/**  AliasFor 注解封装 描述对象
 		 * Create an {@code AliasDescriptor} <em>from</em> the declaration
 		 * of {@code @AliasFor} on the supplied annotation attribute and
 		 * validate the configuration of {@code @AliasFor}.

@@ -476,6 +476,9 @@ public class AnnotationUtilsTests {
 		assertEquals(Component.class, attributes.annotationType());
 	}
 
+	/**
+	 * 获取有嵌套注解的属性
+	 */
 	@Test
 	public void getAnnotationAttributesWithNestedAnnotations() {
 		ComponentScan componentScan = ComponentScanClass.class.getAnnotation(ComponentScan.class);
@@ -494,8 +497,11 @@ public class AnnotationUtilsTests {
 
 	@Test
 	public void getAnnotationAttributesWithAttributeAliases() throws Exception {
+		//从class 类获取方法对象
 		Method method = WebController.class.getMethod("handleMappedWithValueAttribute");
+		//获取方法上的注解
 		WebMapping webMapping = method.getAnnotation(WebMapping.class);
+		//获取注解属性
 		AnnotationAttributes attributes = (AnnotationAttributes) getAnnotationAttributes(webMapping);
 		assertNotNull(attributes);
 		assertEquals(WebMapping.class, attributes.annotationType());
