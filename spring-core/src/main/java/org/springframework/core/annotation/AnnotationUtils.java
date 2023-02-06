@@ -1860,6 +1860,7 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 测定  提供的方法是否是注解属性 方法
 	 * Determine if the supplied {@code method} is an annotation attribute method.
 	 * @param method the method to check
 	 * @return {@code true} if the method is an attribute method
