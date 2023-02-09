@@ -326,6 +326,7 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 从提供的 AnnotatedElement中获取可annotationType重复的注释，其中此类注释在元素上存在、间接存在或元存
 	 * Get the <em>repeatable</em> {@linkplain Annotation annotations} of
 	 * {@code annotationType} from the supplied {@link AnnotatedElement}, where
 	 * such annotations are either <em>present</em>, <em>indirectly present</em>,
@@ -1431,6 +1432,7 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 获取注解方法的默认值
 	 * Retrieve the <em>default value</em> of a named attribute, given an annotation instance.
 	 * @param annotation the annotation instance from which to retrieve the default value
 	 * @param attributeName the name of the attribute value to retrieve
@@ -2134,18 +2136,29 @@ public abstract class AnnotationUtils {
 			return descriptor;
 		}
 
+		/**
+		 * AliasDescriptor 描述器 构造逻辑
+		 *
+		 * @param sourceAttribute
+		 * @param aliasFor
+		 */
 		@SuppressWarnings("unchecked")
 		private AliasDescriptor(Method sourceAttribute, AliasFor aliasFor) {
+			//获取方法属性的声明类
 			Class<?> declaringClass = sourceAttribute.getDeclaringClass();
 			Assert.isTrue(declaringClass.isAnnotation(), "sourceAttribute must be from an annotation");
 
+			//属性方法
 			this.sourceAttribute = sourceAttribute;
+			//声明类
 			this.sourceAnnotationType = (Class<? extends Annotation>) declaringClass;
+			//属性方法名
 			this.sourceAttributeName = sourceAttribute.getName();
-
+			//被别名的注解类型
 			this.aliasedAnnotationType = (Annotation.class == aliasFor.annotation() ?
 					this.sourceAnnotationType : aliasFor.annotation());
 			this.aliasedAttributeName = getAliasedAttributeName(aliasFor, sourceAttribute);
+			//被别名的注解类型 和 源注解类型相同，且被注解的属性名和源属性名相同，抛出配置错误
 			if (this.aliasedAnnotationType == this.sourceAnnotationType &&
 					this.aliasedAttributeName.equals(this.sourceAttributeName)) {
 				String msg = String.format("@AliasFor declaration on attribute '%s' in annotation [%s] points to " +
@@ -2163,7 +2176,7 @@ public abstract class AnnotationUtils {
 						this.aliasedAnnotationType.getName());
 				throw new AnnotationConfigurationException(msg, ex);
 			}
-
+			//是否 别名对
 			this.isAliasPair = (this.sourceAnnotationType == this.aliasedAnnotationType);
 		}
 
@@ -2347,7 +2360,7 @@ public abstract class AnnotationUtils {
 			String value = aliasFor.value();
 			boolean attributeDeclared = StringUtils.hasText(attributeName);
 			boolean valueDeclared = StringUtils.hasText(value);
-
+			//@AliasFor 注解的只能申明属性value 和 attribute 中其中一个
 			// Ensure user did not declare both 'value' and 'attribute' in @AliasFor
 			if (attributeDeclared && valueDeclared) {
 				String msg = String.format("In @AliasFor declared on attribute '%s' in annotation [%s], attribute 'attribute' " +

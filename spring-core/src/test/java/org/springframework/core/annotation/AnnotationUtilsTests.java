@@ -539,6 +539,10 @@ public class AnnotationUtilsTests {
 		assertEquals(1, getValue(order));
 	}
 
+	/**
+	 * no public 注解，没有理解 todo
+	 * @throws Exception
+	 */
 	@Test
 	public void getValueFromNonPublicAnnotation() throws Exception {
 		Annotation[] declaredAnnotations = NonPublicAnnotatedClass.class.getDeclaredAnnotations();
@@ -585,6 +589,7 @@ public class AnnotationUtilsTests {
 
 	@Test
 	public void getRepeatableAnnotationsDeclaredOnMethod() throws Exception {
+		//
 		Method method = InterfaceWithRepeated.class.getMethod("foo");
 		Set<MyRepeatable> annotations = getRepeatableAnnotations(method, MyRepeatable.class, MyRepeatableContainer.class);
 		assertNotNull(annotations);
@@ -592,6 +597,10 @@ public class AnnotationUtilsTests {
 		assertThat(values, is(asList("A", "B", "C", "meta1")));
 	}
 
+	/**
+	 * 测试 @AliasFor 别名对配置,不可缺失
+	 * @throws Exception
+	 */
 	@Test
 	public void getRepeatableAnnotationsDeclaredOnClassWithMissingAttributeAliasDeclaration() throws Exception {
 		exception.expect(AnnotationConfigurationException.class);
@@ -1860,6 +1869,10 @@ public class AnnotationUtilsTests {
 		void foo();
 	}
 
+	/**
+	 * 重复使用注解
+	 * 两种方式
+	 */
 	@MyRepeatable("A")
 	@MyRepeatableContainer({@MyRepeatable("B"), @MyRepeatable("C")})
 	@MyRepeatableMeta1
