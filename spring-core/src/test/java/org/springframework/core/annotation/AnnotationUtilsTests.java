@@ -614,14 +614,14 @@ public class AnnotationUtilsTests {
 	@Test
 	public void getRepeatableAnnotationsDeclaredOnClassWithAttributeAliases() {
 		final List<String> expectedLocations = asList("A", "B");
-
+		//无containerAnnotation，无法查询到
 		Set<ContextConfig> annotations = getRepeatableAnnotations(ConfigHierarchyTestCase.class, ContextConfig.class, null);
 		assertNotNull(annotations);
 		assertEquals("size if container type is omitted: ", 0, annotations.size());
 
 		annotations = getRepeatableAnnotations(ConfigHierarchyTestCase.class, ContextConfig.class, Hierarchy.class);
 		assertNotNull(annotations);
-
+		System.out.println(annotations.size());
 		List<String> locations = annotations.stream().map(ContextConfig::location).collect(toList());
 		assertThat(locations, is(expectedLocations));
 
@@ -684,13 +684,13 @@ public class AnnotationUtilsTests {
 		final List<String> expectedValuesJava = asList("X", "Y", "Z");
 		final List<String> expectedValuesSpring = asList("X", "Y", "Z", "meta2");
 
-		// Java 8
+		// Java 8 如果在指定类能查找到，即便注解是被@Inherited 修饰，也不会向上寻找
 		MyRepeatable[] array = clazz.getAnnotationsByType(MyRepeatable.class);
 		assertNotNull(array);
 		List<String> values = stream(array).map(MyRepeatable::value).collect(toList());
 		assertThat(values, is(expectedValuesJava));
 
-		// Spring
+		// Spring  如果在指定类能查找，不会向上寻找
 		Set<MyRepeatable> set = getRepeatableAnnotations(clazz, MyRepeatable.class, MyRepeatableContainer.class);
 		assertNotNull(set);
 		values = set.stream().map(MyRepeatable::value).collect(toList());
@@ -709,18 +709,19 @@ public class AnnotationUtilsTests {
 		final List<String> expectedValuesJava = asList("X", "Y", "Z");
 		final List<String> expectedValuesSpring = asList("X", "Y", "Z", "meta2");
 
-		// Java 8
+		// Java 8 如果在指定类能查找到，即便注解是被@Inherited 修饰，也不会向上寻找
 		MyRepeatable[] array = clazz.getAnnotationsByType(MyRepeatable.class);
 		assertNotNull(array);
 		List<String> values = stream(array).map(MyRepeatable::value).collect(toList());
 		assertThat(values, is(expectedValuesJava));
 
-		// Spring
+		// Spring 如果在指定类能查找，不会向上寻找
 		Set<MyRepeatable> set = getRepeatableAnnotations(clazz, MyRepeatable.class, MyRepeatableContainer.class);
 		assertNotNull(set);
 		values = set.stream().map(MyRepeatable::value).collect(toList());
 		assertThat(values, is(expectedValuesSpring));
 
+		//如果容器类未执行，在指定注解上通过@Repeatable 推断容器注解
 		// When container type is omitted and therefore inferred from @Repeatable
 		set = getRepeatableAnnotations(clazz, MyRepeatable.class);
 		assertNotNull(set);
@@ -733,13 +734,13 @@ public class AnnotationUtilsTests {
 		final List<String> expectedValuesJava = asList("A", "B", "C");
 		final List<String> expectedValuesSpring = asList("A", "B", "C", "meta1");
 
-		// Java 8
+		// Java 8 只在直接本类声明的注解上寻找
 		MyRepeatable[] array = MyRepeatableClass.class.getDeclaredAnnotationsByType(MyRepeatable.class);
 		assertNotNull(array);
 		List<String> values = stream(array).map(MyRepeatable::value).collect(toList());
 		assertThat(values, is(expectedValuesJava));
 
-		// Spring
+		// Spring  也是在本类上寻找，但是会递归查找非 指定注解和容器注解
 		Set<MyRepeatable> set = getDeclaredRepeatableAnnotations(MyRepeatableClass.class, MyRepeatable.class, MyRepeatableContainer.class);
 		assertNotNull(set);
 		values = set.stream().map(MyRepeatable::value).collect(toList());
@@ -756,12 +757,12 @@ public class AnnotationUtilsTests {
 	public void getDeclaredRepeatableAnnotationsDeclaredOnSuperclass() {
 		final Class<?> clazz = SubMyRepeatableClass.class;
 
-		// Java 8
+		// Java 8getDeclaredAnnotationsByType 不会向上查找父类
 		MyRepeatable[] array = clazz.getDeclaredAnnotationsByType(MyRepeatable.class);
 		assertNotNull(array);
 		assertThat(array.length, is(0));
 
-		// Spring
+		// Spring  只在本类上寻找
 		Set<MyRepeatable> set = getDeclaredRepeatableAnnotations(clazz, MyRepeatable.class, MyRepeatableContainer.class);
 		assertNotNull(set);
 		assertThat(set.size(), is(0));
@@ -776,11 +777,16 @@ public class AnnotationUtilsTests {
 	public void getAttributeOverrideNameFromWrongTargetAnnotation() throws Exception {
 		Method attribute = AliasedComposedContextConfig.class.getDeclaredMethod("xmlConfigFile");
 		assertThat("xmlConfigFile is not an alias for @Component.",
-				getAttributeOverrideName(attribute, Component.class), is(nullValue()));
+				getAttributeOverrideName(attribute, ContextConfig.class), is(nullValue()));
 	}
 
+	/**
+	 * 在没有被别名的属性上序号被覆盖的属性名
+	 * @throws Exception
+	 */
 	@Test
 	public void getAttributeOverrideNameForNonAliasedAttribute() throws Exception {
+
 		Method nonAliasedAttribute = ImplicitAliasesContextConfig.class.getDeclaredMethod("nonAliasedAttribute");
 		assertThat(getAttributeOverrideName(nonAliasedAttribute, ContextConfig.class), is(nullValue()));
 	}
@@ -805,7 +811,7 @@ public class AnnotationUtilsTests {
 		assertEquals("location", getAttributeOverrideName(groovyScript, ContextConfig.class));
 		assertEquals("location", getAttributeOverrideName(value, ContextConfig.class));
 
-		// Implicit aliases
+		// Implicit aliases 隐式别名
 		assertThat(getAttributeAliasNames(xmlFile), containsInAnyOrder("value", "groovyScript", "location1", "location2", "location3"));
 		assertThat(getAttributeAliasNames(groovyScript), containsInAnyOrder("value", "xmlFile", "location1", "location2", "location3"));
 		assertThat(getAttributeAliasNames(value), containsInAnyOrder("xmlFile", "groovyScript", "location1", "location2", "location3"));
@@ -836,7 +842,7 @@ public class AnnotationUtilsTests {
 		Method location = ImplicitAliasesWithImpliedAliasNamesOmittedContextConfig.class.getDeclaredMethod("location");
 		Method xmlFile = ImplicitAliasesWithImpliedAliasNamesOmittedContextConfig.class.getDeclaredMethod("xmlFile");
 
-		// Meta-annotation attribute overrides
+		// Meta-annotation attribute overrides,@AliasFor 的attribute ，value 没有设置时，默认别名该属性方法名
 		assertEquals("value", getAttributeOverrideName(value, ContextConfig.class));
 		assertEquals("location", getAttributeOverrideName(location, ContextConfig.class));
 		assertEquals("location", getAttributeOverrideName(xmlFile, ContextConfig.class));
@@ -847,6 +853,10 @@ public class AnnotationUtilsTests {
 		assertThat(getAttributeAliasNames(xmlFile), containsInAnyOrder("value", "location"));
 	}
 
+	/**
+	 * 可传递的  隐式别名
+	 * @throws Exception
+	 */
 	@Test
 	public void getAttributeAliasNamesFromComposedAnnotationWithTransitiveImplicitAliases() throws Exception {
 		Method xml = TransitiveImplicitAliasesContextConfig.class.getDeclaredMethod("xml");
@@ -856,7 +866,7 @@ public class AnnotationUtilsTests {
 		assertEquals("xmlFile", getAttributeOverrideName(xml, ImplicitAliasesContextConfig.class));
 		assertEquals("groovyScript", getAttributeOverrideName(groovy, ImplicitAliasesContextConfig.class));
 
-		// Transitive meta-annotation attribute overrides
+		// Transitive meta-annotation attribute overrides 传递性
 		assertEquals("location", getAttributeOverrideName(xml, ContextConfig.class));
 		assertEquals("location", getAttributeOverrideName(groovy, ContextConfig.class));
 
@@ -865,6 +875,10 @@ public class AnnotationUtilsTests {
 		assertThat(getAttributeAliasNames(groovy), containsInAnyOrder("xml"));
 	}
 
+	/**
+	 * 从具有别名对的传递隐式别名的组合注释中获取属性别名
+	 * @throws Exception
+	 */
 	@Test
 	public void getAttributeAliasNamesFromComposedAnnotationWithTransitiveImplicitAliasesForAliasPair() throws Exception {
 		Method xml = TransitiveImplicitAliasesForAliasPairContextConfig.class.getDeclaredMethod("xml");
@@ -879,6 +893,10 @@ public class AnnotationUtilsTests {
 		assertThat(getAttributeAliasNames(groovy), containsInAnyOrder("xml"));
 	}
 
+	/**
+	 * 从具有传递隐式别名（省略隐式别名）的组合注释中获取属性别名
+	 * @throws Exception
+	 */
 	@Test
 	public void getAttributeAliasNamesFromComposedAnnotationWithTransitiveImplicitAliasesWithImpliedAliasNamesOmitted()
 			throws Exception {
@@ -896,9 +914,16 @@ public class AnnotationUtilsTests {
 
 		// Transitive implicit aliases
 		assertThat(getAttributeAliasNames(groovy), containsInAnyOrder("xml"));
+		System.out.println(getAttributeAliasNames(groovy));
 		assertThat(getAttributeAliasNames(xml), containsInAnyOrder("groovy"));
+		System.out.println(getAttributeAliasNames(xml));
+
 	}
 
+	/**
+	 * 合成不带属性别名的注释  synthesize :ˈsɪnθəsaɪz   合成;综合
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithoutAttributeAliases() throws Exception {
 		Component component = WebController.class.getAnnotation(Component.class);
@@ -909,6 +934,10 @@ public class AnnotationUtilsTests {
 		assertEquals("value attribute: ", "webController", synthesizedComponent.value());
 	}
 
+	/**
+	 *合成已合成的注释
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAlreadySynthesizedAnnotation() throws Exception {
 		Method method = WebController.class.getMethod("handleMappedWithValueAttribute");
@@ -925,6 +954,10 @@ public class AnnotationUtilsTests {
 		assertArrayEquals("actual value attribute: ", asArray("/test"), synthesizedAgainWebMapping.value());
 	}
 
+	/**
+	 * 合成缺少属性声明别名注释
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWhereAliasForIsMissingAttributeDeclaration() throws Exception {
 		AliasForWithMissingAttributeDeclaration annotation = AliasForWithMissingAttributeDeclarationClass.class.getAnnotation(AliasForWithMissingAttributeDeclaration.class);
@@ -935,6 +968,10 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 *  @AliasFor(value = "bar", attribute = "baz") 属性对别名，value和attribute值不能同时设置
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWhereAliasForHasDuplicateAttributeDeclaration() throws Exception {
 		AliasForWithDuplicateAttributeDeclaration annotation = AliasForWithDuplicateAttributeDeclarationClass.class.getAnnotation(AliasForWithDuplicateAttributeDeclaration.class);
@@ -945,6 +982,10 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 * 将注释与不存在属性的属性别名合成
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasForNonexistentAttribute() throws Exception {
 		AliasForNonexistentAttribute annotation = AliasForNonexistentAttributeClass.class.getAnnotation(AliasForNonexistentAttribute.class);
@@ -955,6 +996,11 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 * 使用属性别名合成注释，而不带镜像别名
+	 * 配置属性别名对时，镜像别名（镜像别名） 的属性设置不为空
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasWithoutMirroredAliasFor() throws Exception {
 		AliasForWithoutMirroredAliasFor annotation =
@@ -966,6 +1012,11 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 * 将带有属性别名的注释与错误属性的镜像别名合成
+	 * 镜像别名的属性名如果和源属性名不同，不能互为别名
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasWithMirroredAliasForWrongAttribute() throws Exception {
 		AliasForWithMirroredAliasForWrongAttribute annotation =
@@ -978,6 +1029,11 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 * 将注释与不同类型的属性的属性别名合成
+	 * 互为别名对，属性方法返回值应相同
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasForAttributeOfDifferentType() throws Exception {
 		AliasForAttributeOfDifferentType annotation =
@@ -991,6 +1047,12 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 * 将注释与缺少默认值的属性合成
+	 *
+	 *两默认值不为空
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasForWithMissingDefaultValues() throws Exception {
 		AliasForWithMissingDefaultValues annotation =
@@ -1004,6 +1066,13 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 * 为具有不同默认值的属性合成具有属性别名的注释
+	 *
+	 * 互为别名对的合成注解，默认值应相同
+	 *
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasForAttributeWithDifferentDefaultValue() throws Exception {
 		AliasForAttributeWithDifferentDefaultValue annotation =
@@ -1017,6 +1086,18 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 * 元注解属性别名
+	 * 将注释与属性别名合成为不存在的元注释
+	 * 配置错误，被注解的元注解不存在
+	 * @Retention(RetentionPolicy.RUNTIME)
+	 * @interface AliasedComposedContextConfigNotMetaPresent {
+	 *      //引用的元注释 必须存在于声明 @AliasFor的注释类上
+	 *      @AliasFor(annotation = ContextConfig.class, attribute = "location")
+	 * 		String xmlConfigFile();
+	 *  }
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasForMetaAnnotationThatIsNotMetaPresent() throws Exception {
 		AliasedComposedContextConfigNotMetaPresent annotation =
@@ -1030,6 +1111,10 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(annotation);
 	}
 
+	/**
+	 * 使用属性别名合成注记
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliases() throws Exception {
 		Method method = WebController.class.getMethod("handleMappedWithValueAttribute");
@@ -1053,6 +1138,10 @@ public class AnnotationUtilsTests {
 		assertArrayEquals("actual value attribute: ", asArray("/test"), synthesizedWebMapping2.value());
 	}
 
+	/**
+	 * 使用隐式别名合成注解
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithImplicitAliases() throws Exception {
 		assertAnnotationSynthesisWithImplicitAliases(ValueImplicitAliasesContextConfigClass.class, "value");
@@ -1074,6 +1163,10 @@ public class AnnotationUtilsTests {
 		assertEquals("groovyScript: ", expected, synthesizedConfig.groovyScript());
 	}
 
+	/**
+	 * 使用隐式别名合成注释，省略隐式别名
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithImplicitAliasesWithImpliedAliasNamesOmitted() throws Exception {
 		assertAnnotationSynthesisWithImplicitAliasesWithImpliedAliasNamesOmitted(
@@ -1099,6 +1192,36 @@ public class AnnotationUtilsTests {
 		assertEquals("xmlFiles: ", expected, synthesizedConfig.xmlFile());
 	}
 
+	/**
+	 * 使用别名对的隐式别名合成注释
+	 * ContextConfig value 和 location 时别名对
+	 * @Retention(RetentionPolicy.RUNTIME)
+	 * @interface ContextConfig {
+	 *
+	 *        @AliasFor("location")
+	 *        String value() default "";
+	 *
+	 *        @AliasFor("value")
+	 *        String location() default "";
+	 *
+	 * 		Class<?> klass() default Object.class;
+	 *    }
+	 *
+	 * 所以对元注解别名 xmlFile.AliasFor->ContextConfig.location  groovyScript.AliasFor->ContextConfig.value
+	 * @ContextConfig
+	 *    @Retention(RetentionPolicy.RUNTIME)
+	 *    @interface ImplicitAliasesForAliasPairContextConfig {
+	 *
+	 *        @AliasFor(annotation = ContextConfig.class, attribute = "location")
+	 * 		String xmlFile() default "";
+	 *
+	 *        @AliasFor(annotation = ContextConfig.class, value = "value")
+	 * 		String groovyScript() default "";
+	 *    }
+	 *
+	 * 别名传递性，xmlFile  groovyScript 构成隐式别名
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithImplicitAliasesForAliasPair() throws Exception {
 		Class<?> clazz = ImplicitAliasesForAliasPairContextConfigClass.class;
@@ -1112,6 +1235,10 @@ public class AnnotationUtilsTests {
 		assertEquals("groovyScript: ", "test.xml", synthesizedConfig.groovyScript());
 	}
 
+	/**
+	 * 使用传递隐式别名合成注释
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithTransitiveImplicitAliases() throws Exception {
 		Class<?> clazz = TransitiveImplicitAliasesContextConfigClass.class;
@@ -1125,6 +1252,10 @@ public class AnnotationUtilsTests {
 		assertEquals("groovy: ", "test.xml", synthesizedConfig.groovy());
 	}
 
+	/**
+	 * 将注释与别名对的传递隐式别名合成
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithTransitiveImplicitAliasesForAliasPair() throws Exception {
 		Class<?> clazz = TransitiveImplicitAliasesForAliasPairContextConfigClass.class;
@@ -1138,6 +1269,10 @@ public class AnnotationUtilsTests {
 		assertEquals("groovy: ", "test.xml", synthesizedConfig.groovy());
 	}
 
+	/**
+	 * 将注释与缺少默认值的隐式别名合成
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithImplicitAliasesWithMissingDefaultValues() throws Exception {
 		Class<?> clazz = ImplicitAliasesWithMissingDefaultValuesContextConfigClass.class;
@@ -1154,6 +1289,10 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(config, clazz);
 	}
 
+	/**
+	 * 使用具有不同默认值的隐式别名合成注释
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithImplicitAliasesWithDifferentDefaultValues() throws Exception {
 		Class<?> clazz = ImplicitAliasesWithDifferentDefaultValuesContextConfigClass.class;
@@ -1170,6 +1309,11 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(config, clazz);
 	}
 
+	/**
+	 * 使用具有重复值的隐式别名合成注释,
+	 * 互为隐式别名，只能设置一个属性值
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithImplicitAliasesWithDuplicateValues() throws Exception {
 		Class<?> clazz = ImplicitAliasesWithDuplicateValuesContextConfigClass.class;
@@ -1194,6 +1338,10 @@ public class AnnotationUtilsTests {
 		synthesizedConfig.location1();
 	}
 
+	/**
+	 * 从自定义的属性map中合成不带属性别名的注记
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationFromMapWithoutAttributeAliases() throws Exception {
 		Component component = WebController.class.getAnnotation(Component.class);
@@ -1208,6 +1356,10 @@ public class AnnotationUtilsTests {
 		assertEquals("value from synthesized component: ", "webController", synthesizedComponent.value());
 	}
 
+	/**
+	 * 将地图中的注释与嵌套地图合成
+	 * @throws Exception
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	public void synthesizeAnnotationFromMapWithNestedMap() throws Exception {
@@ -1236,6 +1388,10 @@ public class AnnotationUtilsTests {
 		assertEquals("value from synthesized ComponentScan: ", "newFoo", synthesizedComponentScan.value().pattern());
 	}
 
+	/**
+	 *
+	 * @throws Exception
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	public void synthesizeAnnotationFromMapWithNestedArrayOfMaps() throws Exception {
@@ -1266,6 +1422,10 @@ public class AnnotationUtilsTests {
 		assertEquals(asList("newFoo", "newBar"), patterns);
 	}
 
+	/**
+	 * 从没有属性别名的默认值合成注解
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationFromDefaultsWithoutAttributeAliases() throws Exception {
 		AnnotationWithDefaults annotationWithDefaults = synthesizeAnnotation(AnnotationWithDefaults.class);
@@ -1275,6 +1435,10 @@ public class AnnotationUtilsTests {
 		assertArrayEquals("characters: ", new char[] { 'a', 'b', 'c' }, annotationWithDefaults.characters());
 	}
 
+	/**
+	 * 将默认值中的注释与属性别名合成
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationFromDefaultsWithAttributeAliases() throws Exception {
 		ContextConfig contextConfig = synthesizeAnnotation(ContextConfig.class);
@@ -1283,6 +1447,10 @@ public class AnnotationUtilsTests {
 		assertEquals("location: ", "", contextConfig.location());
 	}
 
+	/**
+	 * 使用具有不同值的属性别名合成注释
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasesWithDifferentValues() throws Exception {
 		ContextConfig contextConfig = synthesizeAnnotation(ContextConfigMismatch.class.getAnnotation(ContextConfig.class));
@@ -1290,6 +1458,10 @@ public class AnnotationUtilsTests {
 		getValue(contextConfig);
 	}
 
+	/**
+	 * 将map中的助兴与属性别名的最小属性合成
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationFromMapWithMinimalAttributesWithAttributeAliases() throws Exception {
 		Map<String, Object> map = Collections.singletonMap("location", "test.xml");
@@ -1299,6 +1471,10 @@ public class AnnotationUtilsTests {
 		assertEquals("location: ", "test.xml", contextConfig.location());
 	}
 
+	/**
+	 * 使用属性别名合成来自 map 的注释，这些别名覆盖了具有单个元素的数组
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationFromMapWithAttributeAliasesThatOverrideArraysWithSingleElements() throws Exception {
 		Map<String, Object> map = Collections.singletonMap("value", "/foo");
@@ -1314,6 +1490,10 @@ public class AnnotationUtilsTests {
 		assertEquals("path: ", "/foo", get.path());
 	}
 
+	/**
+	 * 使用隐式属性别名合成map中的注解
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationFromMapWithImplicitAttributeAliases() throws Exception {
 		assertAnnotationSynthesisFromMapWithImplicitAliases("value");
@@ -1356,6 +1536,10 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(attributes, AnnotationWithoutDefaults.class, null);
 	}
 
+	/**
+	 * 从自定义Map属性合成具有不正确类型的属性的注释
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationFromMapWithAttributeOfIncorrectType() throws Exception {
 		Map<String, Object> map = Collections.singletonMap(VALUE, 42L);
@@ -1370,6 +1554,10 @@ public class AnnotationUtilsTests {
 		synthesizeAnnotation(map, Component.class, null);
 	}
 
+	/**
+	 * 从没有属性别名的注释属性合成注释
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationFromAnnotationAttributesWithoutAttributeAliases() throws Exception {
 		// 1) Get an annotation
@@ -1391,6 +1579,10 @@ public class AnnotationUtilsTests {
 		assertEquals("value from synthesized component: ", "webController", synthesizedComponent.value());
 	}
 
+	/**
+	 * 到合成批注的字符串
+	 * @throws Exception
+	 */
 	@Test
 	public void toStringForSynthesizedAnnotations() throws Exception {
 		Method methodWithPath = WebController.class.getMethod("handleMappedWithPathAttribute");
@@ -1499,6 +1691,7 @@ public class AnnotationUtilsTests {
 	}
 
 	/**
+	 * 完全基于反射的测试，用于验证对跨包合成注释的支持，这些 注释 具有用户类型的非公开可见性（例如，使用 @AliasFor的非公共注释）
 	 * Fully reflection-based test that verifies support for
 	 * {@linkplain AnnotationUtils#synthesizeAnnotation synthesizing annotations}
 	 * across packages with non-public visibility of user types (e.g., a non-public
@@ -1523,12 +1716,17 @@ public class AnnotationUtilsTests {
 		assertEquals("aliased path attribute: ", "/test", getValue(synthesizedAnnotation, "value"));
 	}
 
+	/**
+	 * 在嵌套批注中将批注与属性别名合成
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithAttributeAliasesInNestedAnnotations() throws Exception {
 		List<String> expectedLocations = asList("A", "B");
 
 		Hierarchy hierarchy = ConfigHierarchyTestCase.class.getAnnotation(Hierarchy.class);
 		assertNotNull(hierarchy);
+		//在嵌套批注中将批注与属性别名合成，获取到属性值也是合成的
 		Hierarchy synthesizedHierarchy = synthesizeAnnotation(hierarchy);
 		assertNotSame(hierarchy, synthesizedHierarchy);
 		assertThat(synthesizedHierarchy, instanceOf(SynthesizedAnnotation.class));
@@ -1545,6 +1743,10 @@ public class AnnotationUtilsTests {
 		assertThat(values, is(expectedLocations));
 	}
 
+	/**
+	 * 将含有注解数组的合成注解
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithArrayOfAnnotations() throws Exception {
 		List<String> expectedLocations = asList("A", "B");
@@ -1570,6 +1772,10 @@ public class AnnotationUtilsTests {
 		assertThat(values, is(expectedLocations));
 	}
 
+	/**
+	 * 使用字符数组合成注释
+	 * @throws Exception
+	 */
 	@Test
 	public void synthesizeAnnotationWithArrayOfChars() throws Exception {
 		CharsContainer charsContainer = GroupOfCharsClass.class.getAnnotation(CharsContainer.class);
@@ -1965,7 +2171,7 @@ public class AnnotationUtilsTests {
 		/**
 		 * mapping is logically "equal" to handleMappedWithPathAttribute().
 		 */
-		@WebMapping(value = "/test", path = "/test", name = "bar", method = { RequestMethod.GET, RequestMethod.POST })
+		@WebMapping(value = "/test", path = "/test1", name = "bar", method = { RequestMethod.GET, RequestMethod.POST })
 		public void handleMappedWithSamePathAndValueAttributes() {
 		}
 
@@ -1975,6 +2181,7 @@ public class AnnotationUtilsTests {
 	}
 
 	/**
+	 * AliasPair 注解
 	 * Mock of {@code org.springframework.test.context.ContextConfiguration}.
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
@@ -2064,7 +2271,7 @@ public class AnnotationUtilsTests {
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface AliasForNonexistentAttribute {
 
-		@AliasFor("bar")
+		@AliasFor("bar") //value="value"
 		String foo() default "";
 	}
 
@@ -2153,6 +2360,9 @@ public class AnnotationUtilsTests {
 	static class AliasedComposedContextConfigNotMetaPresentClass {
 	}
 
+	/**
+	 * 元注释中属性的显式别名 @AliasedComposedContextConfig 对ContextConfig的别名
+	 */
 	@ContextConfig
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface AliasedComposedContextConfig {
@@ -2161,6 +2371,9 @@ public class AnnotationUtilsTests {
 		String xmlConfigFile();
 	}
 
+	/**
+	 * ImplicitAliasesContextConfig 的属性都指向注解ContextConfig.location,形成隐式别名
+	 */
 	@ContextConfig
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface ImplicitAliasesContextConfig {

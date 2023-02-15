@@ -326,7 +326,7 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
-	 * 从提供的 AnnotatedElement中获取可annotationType重复的注释，其中此类注释在元素上存在、间接存在或元存
+	 * 在注解元素 指定的容器类型上（为空的话，通过getAnnotation 寻找Repeatable 容器）寻找指定的可重复的注解（可不被@Repeatable 修饰）
 	 * Get the <em>repeatable</em> {@linkplain Annotation annotations} of
 	 * {@code annotationType} from the supplied {@link AnnotatedElement}, where
 	 * such annotations are either <em>present</em>, <em>indirectly present</em>,
@@ -363,6 +363,7 @@ public abstract class AnnotationUtils {
 		if (!annotations.isEmpty()) {
 			return annotations;
 		}
+
 
 		if (annotatedElement instanceof Class) {
 			Class<?> superclass = ((Class<?>) annotatedElement).getSuperclass();
@@ -1530,7 +1531,7 @@ public abstract class AnnotationUtils {
 		if (!isSynthesizable(annotationType)) {
 			return annotation;
 		}
-
+		//注解属性提取器
 		DefaultAnnotationAttributeExtractor attributeExtractor =
 				new DefaultAnnotationAttributeExtractor(annotation, annotatedElement);
 		InvocationHandler handler = new SynthesizedAnnotationInvocationHandler(attributeExtractor);
@@ -1538,7 +1539,8 @@ public abstract class AnnotationUtils {
 		// Can always expose Spring's SynthesizedAnnotation marker since we explicitly check for a
 		// synthesizable annotation before (which needs to declare @AliasFor from the same package)
 		Class<?>[] exposedInterfaces = new Class<?>[] {annotationType, SynthesizedAnnotation.class};
-		return (A) Proxy.newProxyInstance(annotation.getClass().getClassLoader(), exposedInterfaces, handler);
+		A proxyInstance = (A) Proxy.newProxyInstance(annotation.getClass().getClassLoader(), exposedInterfaces, handler);
+		return proxyInstance;
 	}
 
 	/**
@@ -1743,22 +1745,29 @@ public abstract class AnnotationUtils {
 		}
 
 		synthesizable = Boolean.FALSE;
+		//获取 注解类的属性方法list
 		for (Method attribute : getAttributeMethods(annotationType)) {
+			//获取为提供的注释属性配置的@AliasFor别名属性的名称
 			if (!getAttributeAliasNames(attribute).isEmpty()) {
 				synthesizable = Boolean.TRUE;
 				break;
 			}
+			//注解属性方法返回类型
 			Class<?> returnType = attribute.getReturnType();
 			if (Annotation[].class.isAssignableFrom(returnType)) {
 				Class<? extends Annotation> nestedAnnotationType =
+						//返回表示数组的组件类型的
 						(Class<? extends Annotation>) returnType.getComponentType();
+				//数组组件类型是否是可合成的
 				if (isSynthesizable(nestedAnnotationType)) {
 					synthesizable = Boolean.TRUE;
 					break;
 				}
 			}
+			//如果返回类是Annotation 的子类
 			else if (Annotation.class.isAssignableFrom(returnType)) {
 				Class<? extends Annotation> nestedAnnotationType = (Class<? extends Annotation>) returnType;
+				//数组组件类型是否是可合成的
 				if (isSynthesizable(nestedAnnotationType)) {
 					synthesizable = Boolean.TRUE;
 					break;
@@ -1833,7 +1842,7 @@ public abstract class AnnotationUtils {
 		}
 
 		methods = new ArrayList<Method>();
-		for (Method method : annotationType.getDeclaredMethods()) {
+		for (Method method : annotationType.getDeclaredMethods()) {//获取注解类所有声明的方法
 			if (isAttributeMethod(method)) {
 				ReflectionUtils.makeAccessible(method);
 				methods.add(method);
@@ -2032,8 +2041,10 @@ public abstract class AnnotationUtils {
 
 		AnnotationCollector(Class<A> annotationType, Class<? extends Annotation> containerAnnotationType, boolean declaredMode) {
 			this.annotationType = annotationType;
+			//可重复注解 容器注解
 			this.containerAnnotationType = (containerAnnotationType != null ? containerAnnotationType :
 					resolveContainerAnnotationType(annotationType));
+			//确实是否查询 直接申明注解
 			this.declaredMode = declaredMode;
 		}
 
@@ -2049,12 +2060,14 @@ public abstract class AnnotationUtils {
 					Annotation[] annotations = (this.declaredMode ? element.getDeclaredAnnotations() : element.getAnnotations());
 					for (Annotation ann : annotations) {
 						Class<? extends Annotation> currentAnnotationType = ann.annotationType();
+						//查找到，直接加入list
 						if (ObjectUtils.nullSafeEquals(this.annotationType, currentAnnotationType)) {
 							this.result.add(synthesizeAnnotation((A) ann, element));
 						}
 						else if (ObjectUtils.nullSafeEquals(this.containerAnnotationType, currentAnnotationType)) {
 							this.result.addAll(getValue(element, ann));
 						}
+						//如果不是Java 自带注解，递归查询当前注解
 						else if (!isInJavaLangAnnotationPackage(currentAnnotationType)) {
 							process(currentAnnotationType);
 						}
@@ -2066,7 +2079,7 @@ public abstract class AnnotationUtils {
 			}
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings("unchecked")//在注解元素类型对象上获取指定类型的注解，如果是注解属性有@AliasFor，封装合成打标未SynthesizedAnnotation 对象
 		private List<A> getValue(AnnotatedElement element, Annotation annotation) {
 			try {
 				List<A> synthesizedAnnotations = new ArrayList<A>();
@@ -2150,13 +2163,14 @@ public abstract class AnnotationUtils {
 
 			//属性方法
 			this.sourceAttribute = sourceAttribute;
-			//声明类
+			//属性方法的声明类
 			this.sourceAnnotationType = (Class<? extends Annotation>) declaringClass;
 			//属性方法名
 			this.sourceAttributeName = sourceAttribute.getName();
-			//被别名的注解类型
+			//被别名的注解类型,如果AliasFor 对象的annotation 没有设置,默认为源属性方法
 			this.aliasedAnnotationType = (Annotation.class == aliasFor.annotation() ?
 					this.sourceAnnotationType : aliasFor.annotation());
+			//被注解的属性名 ，返回优先级 aliasFor.属性名 > aliasFor.value值 > sourceAttribute.属性方法名
 			this.aliasedAttributeName = getAliasedAttributeName(aliasFor, sourceAttribute);
 			//被别名的注解类型 和 源注解类型相同，且被注解的属性名和源属性名相同，抛出配置错误
 			if (this.aliasedAnnotationType == this.sourceAnnotationType &&
@@ -2167,6 +2181,7 @@ public abstract class AnnotationUtils {
 				throw new AnnotationConfigurationException(msg);
 			}
 			try {
+				//在被注解的注解类型上 按被注解属性方法名获取注解方法
 				this.aliasedAttribute = this.aliasedAnnotationType.getDeclaredMethod(this.aliasedAttributeName);
 			}
 			catch (NoSuchMethodException ex) {
@@ -2192,6 +2207,7 @@ public abstract class AnnotationUtils {
 
 			if (this.isAliasPair) {
 				AliasFor mirrorAliasFor = this.aliasedAttribute.getAnnotation(AliasFor.class);
+				//镜像别名不存在
 				if (mirrorAliasFor == null) {
 					String msg = String.format("Attribute '%s' in annotation [%s] must be declared as an @AliasFor [%s].",
 							this.aliasedAttributeName, this.sourceAnnotationType.getName(), this.sourceAttributeName);
@@ -2199,6 +2215,7 @@ public abstract class AnnotationUtils {
 				}
 
 				String mirrorAliasedAttributeName = getAliasedAttributeName(mirrorAliasFor, this.aliasedAttribute);
+				//镜像别名的属性名如果和源属性名不同，不能互为别名
 				if (!this.sourceAttributeName.equals(mirrorAliasedAttributeName)) {
 					String msg = String.format("Attribute '%s' in annotation [%s] must be declared as an @AliasFor [%s], not [%s].",
 							this.aliasedAttributeName, this.sourceAnnotationType.getName(), this.sourceAttributeName,
@@ -2223,6 +2240,10 @@ public abstract class AnnotationUtils {
 			}
 		}
 
+		/**
+		 * 校验默认值配置
+		 * @param aliasedAttribute
+		 */
 		private void validateDefaultValueConfiguration(Method aliasedAttribute) {
 			Assert.notNull(aliasedAttribute, "aliasedAttribute must not be null");
 			Object defaultValue = this.sourceAttribute.getDefaultValue();
@@ -2286,15 +2307,21 @@ public abstract class AnnotationUtils {
 			return false;
 		}
 
+		/**
+		 * AliasDescriptor 查询该注解 的别名属性名
+		 * @return
+		 */
 		public List<String> getAttributeAliasNames() {
-			// Explicit alias pair?
+			// Explicit alias pair? 如果 注解属性的显示别名对，直接返回被别名的属性名
 			if (this.isAliasPair) {
 				return Collections.singletonList(this.aliasedAttributeName);
 			}
 
-			// Else: search for implicit aliases
+			// Else: search for implicit aliases getOtherDescriptors 获取源属性方法的注解类型上的所有的属性方法
+			// 搜索属性覆盖层次结构（从此描述符开始），传递隐式别名
 			List<String> aliases = new ArrayList<String>();
 			for (AliasDescriptor otherDescriptor : getOtherDescriptors()) {
+				//该别名是否也是其他别名的别名
 				if (this.isAliasFor(otherDescriptor)) {
 					this.validateAgainst(otherDescriptor);
 					aliases.add(otherDescriptor.sourceAttributeName);
@@ -2306,7 +2333,7 @@ public abstract class AnnotationUtils {
 		private List<AliasDescriptor> getOtherDescriptors() {
 			List<AliasDescriptor> otherDescriptors = new ArrayList<AliasDescriptor>();
 			for (Method currentAttribute : getAttributeMethods(this.sourceAnnotationType)) {
-				if (!this.sourceAttribute.equals(currentAttribute)) {
+				if (!this.sourceAttribute.equals(currentAttribute)) {//排除源方法属性
 					AliasDescriptor otherDescriptor = AliasDescriptor.from(currentAttribute);
 					if (otherDescriptor != null) {
 						otherDescriptors.add(otherDescriptor);
@@ -2321,7 +2348,7 @@ public abstract class AnnotationUtils {
 			Assert.isTrue(Annotation.class != metaAnnotationType,
 					"metaAnnotationType must not be [java.lang.annotation.Annotation]");
 
-			// Search the attribute override hierarchy, starting with the current attribute
+			// Search the attribute override hierarchy, starting with the current attribute 在覆盖层次结构中查找被覆盖的属性
 			for (AliasDescriptor desc = this; desc != null; desc = desc.getAttributeOverrideDescriptor()) {
 				if (desc.isOverrideFor(metaAnnotationType)) {
 					return desc.aliasedAttributeName;
@@ -2332,6 +2359,10 @@ public abstract class AnnotationUtils {
 			return null;
 		}
 
+		/**
+		 * 获取该属性别名覆盖的属性描述
+		 * @return
+		 */
 		private AliasDescriptor getAttributeOverrideDescriptor() {
 			if (this.isAliasPair) {
 				return null;
@@ -2356,7 +2387,9 @@ public abstract class AnnotationUtils {
 		 * {@code @AliasFor} is detected
 		 */
 		private String getAliasedAttributeName(AliasFor aliasFor, Method attribute) {
+			//@AliasFor 注解对象的attribute 值
 			String attributeName = aliasFor.attribute();
+			//@AliasFor 注解对象的 value 值
 			String value = aliasFor.value();
 			boolean attributeDeclared = StringUtils.hasText(attributeName);
 			boolean valueDeclared = StringUtils.hasText(value);
@@ -2368,7 +2401,7 @@ public abstract class AnnotationUtils {
 						attribute.getName(), attribute.getDeclaringClass().getName(), attributeName, value);
 				throw new AnnotationConfigurationException(msg);
 			}
-
+			// 返回优先级 aliasFor.属性名 > aliasFor.value值 > sourceAttribute.属性方法名
 			// Either explicit attribute name or pointing to same-named attribute by default
 			attributeName = (attributeDeclared ? attributeName : value);
 			return (StringUtils.hasText(attributeName) ? attributeName.trim() : attribute.getName());

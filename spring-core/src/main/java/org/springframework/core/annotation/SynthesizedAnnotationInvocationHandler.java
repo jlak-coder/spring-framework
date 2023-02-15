@@ -45,6 +45,7 @@ class SynthesizedAnnotationInvocationHandler implements InvocationHandler {
 
 	private final AnnotationAttributeExtractor<?> attributeExtractor;
 
+	//idea debug 预览时，会调用实例的toString()
 	private final Map<String, Object> valueCache = new ConcurrentHashMap<String, Object>(8);
 
 
