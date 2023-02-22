@@ -70,6 +70,8 @@ class MapAnnotationAttributeExtractor extends AbstractAliasAwareAnnotationAttrib
 
 
 	/**
+	 * spring 自定义合成注解的属性map，检查自定义属性返回值和实际枚举属性返回值是否一直，如果不一致，做对应的转换
+	 *
 	 * Enrich and validate the supplied <em>attributes</em> map by ensuring
 	 * that it contains a non-null entry for each annotation attribute in
 	 * the specified {@code annotationType} and that the type of the entry

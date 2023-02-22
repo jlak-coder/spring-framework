@@ -1160,7 +1160,7 @@ public abstract class AnnotationUtils {
 		return attributes;
 	}
 
-	/**
+	/**根据给定的类和嵌套的注释设置调整给定的值，string 或者 map
 	 * Adapt the given value according to the given class and nested annotation settings.
 	 * <p>Nested annotations will be
 	 * {@linkplain #synthesizeAnnotation(Annotation, AnnotatedElement) synthesized}.
@@ -1309,8 +1309,7 @@ public abstract class AnnotationUtils {
 
 		Class<? extends Annotation> annotationType = attributes.annotationType();
 
-		// Track which attribute values have already been replaced so that we can short
-		// circuit the search algorithms.
+		// Track which attribute values have already been replaced so that we can short circuit the search algorithms.
 		Set<String> valuesAlreadyReplaced = new HashSet<String>();
 
 		if (!attributes.validated) {
@@ -1498,6 +1497,7 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 从提供的annotation批注中合成批注，方法是将批注包装在动态代理中，该代理透明地对用 批注的批@AliasFor注属性强制实施属性别名语义
 	 * <em>Synthesize</em> an annotation from the supplied {@code annotation}
 	 * by wrapping it in a dynamic proxy that transparently enforces
 	 * <em>attribute alias</em> semantics for annotation attributes that are
@@ -1799,6 +1799,7 @@ public abstract class AnnotationUtils {
 	}
 
 	/**
+	 * 获取为提供的注释attribute配置的@AliasFor被覆盖属性的名称
 	 * Get the name of the overridden attribute configured via
 	 * {@link AliasFor @AliasFor} for the supplied annotation {@code attribute}.
 	 * @param attribute the attribute from which to retrieve the override
@@ -1819,7 +1820,7 @@ public abstract class AnnotationUtils {
 		Assert.notNull(metaAnnotationType, "metaAnnotationType must not be null");
 		Assert.isTrue(Annotation.class != metaAnnotationType,
 				"metaAnnotationType must not be [java.lang.annotation.Annotation]");
-
+		//组装别名描述器
 		AliasDescriptor descriptor = AliasDescriptor.from(attribute);
 		return (descriptor != null ? descriptor.getAttributeOverrideName(metaAnnotationType) : null);
 	}
@@ -2308,7 +2309,9 @@ public abstract class AnnotationUtils {
 		}
 
 		/**
-		 * AliasDescriptor 查询该注解 的别名属性名
+		 * AliasDescriptor 查询该注解  的别名属性名
+		 * 即  该注解属性方法是否是该注解其他属性的隐式别名
+		 * 返回这些属性名
 		 * @return
 		 */
 		public List<String> getAttributeAliasNames() {

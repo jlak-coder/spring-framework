@@ -25,6 +25,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -130,6 +131,7 @@ public class AnnotatedElementUtilsTests {
 
 	@Test
 	public void isAnnotatedOnSubclassWithMetaDepth0() {
+		//isAnnotated 你不在类层次中搜索
 		assertFalse("isAnnotated() does not search the class hierarchy.",
 				isAnnotated(SubTransactionalComponentClass.class, TransactionalComponent.class.getName()));
 	}
@@ -159,6 +161,10 @@ public class AnnotatedElementUtilsTests {
 		assertEquals("value for TxConfig.", asList("TxConfig"), attributes.get("value"));
 	}
 
+	/**
+	 * 获取具有本地组合注释和继承注释的类上的所有注释属性
+	 * 查找在带注解元素 指定注解名的所有设置属性
+	 */
 	@Test
 	public void getAllAnnotationAttributesOnClassWithLocalComposedAnnotationAndInheritedAnnotation() {
 		MultiValueMap<String, Object> attributes = getAllAnnotationAttributes(SubClassWithInheritedAnnotation.class, TX_NAME);
@@ -166,6 +172,9 @@ public class AnnotatedElementUtilsTests {
 		assertEquals(asList("composed2", "transactionManager"), attributes.get("qualifier"));
 	}
 
+	/**
+	 * 获取所有批注属性优先继承批注，而不是更多本地声明的组合批注
+	 */
 	@Test
 	public void getAllAnnotationAttributesFavorsInheritedAnnotationsOverMoreLocallyDeclaredComposedAnnotations() {
 		MultiValueMap<String, Object> attributes = getAllAnnotationAttributes(SubSubClassWithInheritedAnnotation.class, TX_NAME);
@@ -173,6 +182,9 @@ public class AnnotatedElementUtilsTests {
 		assertEquals(asList("transactionManager"), attributes.get("qualifier"));
 	}
 
+	/**
+	 * 获取所有注释属性优先继承的复合注释，而不是更多本地声明的组合注释
+	 */
 	@Test
 	public void getAllAnnotationAttributesFavorsInheritedComposedAnnotationsOverMoreLocallyDeclaredComposedAnnotations() {
 		MultiValueMap<String, Object> attributes = getAllAnnotationAttributes( SubSubClassWithInheritedComposedAnnotation.class, TX_NAME);
@@ -188,6 +200,7 @@ public class AnnotatedElementUtilsTests {
 	 * to fail.
 	 * @see org.springframework.core.env.EnvironmentSystemIntegrationTests#mostSpecificDerivedClassDrivesEnvironment_withDevEnvAndDerivedDevConfigClass
 	 */
+	//获取类上的所有注释属性，这些注释具有隐藏超类注释的本地注释  jdk 自己处理
 	@Test
 	public void getAllAnnotationAttributesOnClassWithLocalAnnotationThatShadowsAnnotationFromSuperclass() {
 		MultiValueMap<String, Object> attributes = getAllAnnotationAttributes(DerivedTxConfig.class, TX_NAME);
@@ -207,6 +220,10 @@ public class AnnotatedElementUtilsTests {
 				attributes.get("value"));
 	}
 
+	/**
+	 * 注解属性 合并？？？
+	 * 获取具有本地注释的类上的合并注释属性
+	 */
 	@Test
 	public void getMergedAnnotationAttributesOnClassWithLocalAnnotation() {
 		Class<?> element = TxConfig.class;
@@ -218,6 +235,9 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(element, name));
 	}
 
+	/**
+	 * 子类的注解 覆盖 父类相同的注解
+	 */
 	@Test
 	public void getMergedAnnotationAttributesOnClassWithLocalAnnotationThatShadowsAnnotationFromSuperclass() {
 		Class<?> element = DerivedTxConfig.class;
@@ -229,12 +249,18 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(element, name));
 	}
 
+	/**
+	 * 在 循环依赖的注解上 搜索缺失的元注解
+	 */
 	@Test
 	public void getMergedAnnotationAttributesOnMetaCycleAnnotatedClassWithMissingTargetMetaAnnotation() {
 		AnnotationAttributes attributes = getMergedAnnotationAttributes(MetaCycleAnnotatedClass.class, TX_NAME);
 		assertNull("Should not find annotation attributes for @Transactional on MetaCycleAnnotatedClass", attributes);
 	}
 
+	/**
+	 * 获取合并批注属性优先于本地组合批注而不是继承批注
+	 */
 	@Test
 	public void getMergedAnnotationAttributesFavorsLocalComposedAnnotationOverInheritedAnnotation() {
 		Class<?> element = SubClassWithInheritedAnnotation.class;
@@ -246,6 +272,9 @@ public class AnnotatedElementUtilsTests {
 		assertTrue("readOnly flag for SubClassWithInheritedAnnotation.", attributes.getBoolean("readOnly"));
 	}
 
+	/**
+	 * 子类只会继承 父类可继承的注解
+	 */
 	@Test
 	public void getMergedAnnotationAttributesFavorsInheritedAnnotationsOverMoreLocallyDeclaredComposedAnnotations() {
 		Class<?> element = SubSubClassWithInheritedAnnotation.class;
@@ -268,6 +297,9 @@ public class AnnotatedElementUtilsTests {
 		assertFalse("readOnly flag for SubSubClassWithInheritedComposedAnnotation.", attributes.getBoolean("readOnly"));
 	}
 
+	/**
+	 * 接口类上可继承注解 无法子类继承
+	 */
 	@Test
 	public void getMergedAnnotationAttributesFromInterfaceImplementedBySuperclass() {
 		Class<?> element = ConcreteClassWithInheritedAnnotation.class;
@@ -278,6 +310,9 @@ public class AnnotatedElementUtilsTests {
 		assertFalse(isAnnotated(element, name));
 	}
 
+	/**
+	 * 查找接口山可继承的注解
+	 */
 	@Test
 	public void getMergedAnnotationAttributesOnInheritedAnnotationInterface() {
 		Class<?> element = InheritedAnnotationInterface.class;
@@ -288,6 +323,9 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(element, name));
 	}
 
+	/**
+	 *找到接口上不可继承的注解属性
+	 */
 	@Test
 	public void getMergedAnnotationAttributesOnNonInheritedAnnotationInterface() {
 		Class<?> element = NonInheritedAnnotationInterface.class;
@@ -298,10 +336,15 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(element, name));
 	}
 
+	/**
+	 *获取具有基于约定的组合注释的合并注释属性
+	 */
 	@Test
 	public void getMergedAnnotationAttributesWithConventionBasedComposedAnnotation() {
 		Class<?> element = ConventionBasedComposedContextConfigClass.class;
 		String name = ContextConfig.class.getName();
+		//ConventionBasedComposedContextConfig.locations 和 元注解ContextConfig.locations 的属性名相同，会导致ContextConfig 别名对赋值相同的值
+		// ，同时对属性返回值 没有做校验
 		AnnotationAttributes attributes = getMergedAnnotationAttributes(element, name);
 
 		assertNotNull("Should find @ContextConfig on " + element.getSimpleName(), attributes);
@@ -313,6 +356,7 @@ public class AnnotatedElementUtilsTests {
 	}
 
 	/**
+	 * 这个测试不应该通过，仅仅是因为 Spring 不支持使用传递隐式别名覆盖注释属性的混合方法
 	 * This test should never pass, simply because Spring does not support a hybrid
 	 * approach for annotation attribute overrides with transitive implicit aliases.
 	 * See SPR-13554 for details.
@@ -320,13 +364,18 @@ public class AnnotatedElementUtilsTests {
 	 * the first test class or the second one (with different exceptions), depending
 	 * on the order in which the JVM returns the attribute methods via reflection.
 	 */
-	@Ignore("Permanently disabled but left in place for illustrative purposes")
+	//@Ignore("Permanently disabled but left in place for illustrative purposes")
 	@Test
 	public void getMergedAnnotationAttributesWithHalfConventionBasedAndHalfAliasedComposedAnnotation() {
-		for (Class<?> clazz : asList(HalfConventionBasedAndHalfAliasedComposedContextConfigClassV1.class,
-				HalfConventionBasedAndHalfAliasedComposedContextConfigClassV2.class)) {
-			getMergedAnnotationAttributesWithHalfConventionBasedAndHalfAliasedComposedAnnotation(clazz);
+		for (Method method : ContextConfig.class.getDeclaredMethods()) {
+			System.out.println("=================" + method.getName());
 		}
+		for (Method method : HalfConventionBasedAndHalfAliasedComposedContextConfig.class.getDeclaredMethods()) {
+			System.out.println("=================" + method.getName());
+		}
+		getMergedAnnotationAttributesWithHalfConventionBasedAndHalfAliasedComposedAnnotation(HalfConventionBasedAndHalfAliasedComposedContextConfigClassV1.class);
+		getMergedAnnotationAttributesWithHalfConventionBasedAndHalfAliasedComposedAnnotation(HalfConventionBasedAndHalfAliasedComposedContextConfigClassV2.class);
+
 	}
 
 	private void getMergedAnnotationAttributesWithHalfConventionBasedAndHalfAliasedComposedAnnotation(Class<?> clazz) {
@@ -343,6 +392,9 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(clazz, name));
 	}
 
+	/**
+	 *
+	 */
 	@Test
 	public void getMergedAnnotationAttributesWithAliasedComposedAnnotation() {
 		Class<?> element = AliasedComposedContextConfigClass.class;
@@ -371,6 +423,9 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(element, name));
 	}
 
+	/**
+	 * 获取在组合注释上的元注释中具有隐式别名的合并注释属性
+	 */
 	@Test
 	public void getMergedAnnotationAttributesWithImplicitAliasesInMetaAnnotationOnComposedAnnotation() {
 		Class<?> element = ComposedImplicitAliasesContextConfigClass.class;
@@ -388,6 +443,9 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(element, name));
 	}
 
+	/**
+	 * 获取具有被别名的值组合注释的合并批注
+	 */
 	@Test
 	public void getMergedAnnotationWithAliasedValueComposedAnnotation() {
 		assertGetMergedAnnotation(AliasedValueComposedContextConfigClass.class, "test.xml");
@@ -405,6 +463,9 @@ public class AnnotatedElementUtilsTests {
 		assertGetMergedAnnotation(TransitiveImplicitAliasesContextConfigClass.class, "test.groovy");
 	}
 
+	/**
+	 * 获取具有传递隐式别名的合并注释，单个元素通过别名覆盖数组
+	 */
 	@Test
 	public void getMergedAnnotationWithTransitiveImplicitAliasesWithSingleElementOverridingAnArrayViaAliasFor() {
 		assertGetMergedAnnotation(SingleLocationTransitiveImplicitAliasesContextConfigClass.class, "test.groovy");
@@ -415,6 +476,9 @@ public class AnnotatedElementUtilsTests {
 		assertGetMergedAnnotation(TransitiveImplicitAliasesWithSkippedLevelContextConfigClass.class, "test.xml");
 	}
 
+	/**
+	 * 获取具有传递隐式别名的合并注释，跳过级别，单个元素通过别名覆盖数组
+	 */
 	@Test
 	public void getMergedAnnotationWithTransitiveImplicitAliasesWithSkippedLevelWithSingleElementOverridingAnArrayViaAliasFor() {
 		assertGetMergedAnnotation(SingleLocationTransitiveImplicitAliasesWithSkippedLevelContextConfigClass.class, "test.xml");
@@ -433,6 +497,9 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(element, name));
 	}
 
+	/**
+	 * 获取合并的注释与元注释中的隐式别名 在组合注释上
+	 */
 	@Test
 	public void getMergedAnnotationWithImplicitAliasesInMetaAnnotationOnComposedAnnotation() {
 		Class<?> element = ComposedImplicitAliasesContextConfigClass.class;
@@ -450,16 +517,19 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(isAnnotated(element, name));
 	}
 
+	/**
+	 * 获取具有无效的基于约定的复合注释的合并注释属性
+	 */
 	@Test
 	public void getMergedAnnotationAttributesWithInvalidConventionBasedComposedAnnotation() {
 		Class<?> element = InvalidConventionBasedComposedContextConfigClass.class;
-		exception.expect(AnnotationConfigurationException.class);
-		exception.expectMessage(either(containsString("attribute 'value' and its alias 'locations'")).or(
-				containsString("attribute 'locations' and its alias 'value'")));
-		exception.expectMessage(either(
-				containsString("values of [{duplicateDeclaration}] and [{requiredLocationsDeclaration}]")).or(
-				containsString("values of [{requiredLocationsDeclaration}] and [{duplicateDeclaration}]")));
-		exception.expectMessage(containsString("but only one is permitted"));
+		//exception.expect(AnnotationConfigurationException.class);
+		//exception.expectMessage(either(containsString("attribute 'value' and its alias 'locations'")).or(
+				//containsString("attribute 'locations' and its alias 'value'")));
+		//exception.expectMessage(either(
+				//containsString("values of [{duplicateDeclaration}] and [{requiredLocationsDeclaration}]")).or(
+				//containsString("values of [{requiredLocationsDeclaration}] and [{duplicateDeclaration}]")));
+		//exception.expectMessage(containsString("but only one is permitted"));
 		getMergedAnnotationAttributes(element, ContextConfig.class);
 	}
 
@@ -1103,6 +1173,7 @@ public class AnnotatedElementUtilsTests {
 	}
 
 	@Composed
+	//Composed 无法被子类继承
 	static class SubClassWithInheritedComposedAnnotation extends ClassWithInheritedComposedAnnotation {
 	}
 

@@ -135,6 +135,7 @@ public class AnnotatedElementUtils {
 	}
 
 	/**
+	 * 获取所提供 AnnotatedElement上的注释（指定 annotationType的）上存在的所有元注释类型的完全限定类名。
 	 * Get the fully qualified class names of all meta-annotation types
 	 * <em>present</em> on the annotation (of the specified {@code annotationType})
 	 * on the supplied {@link AnnotatedElement}.
@@ -155,7 +156,7 @@ public class AnnotatedElementUtils {
 		return getMetaAnnotationTypes(element, element.getAnnotation(annotationType));
 	}
 
-	/**
+	/**获取所提供 AnnotatedElement上的注释（指定 annotationName的）上存在的所有元注释类型的完全限定类名
 	 * Get the fully qualified class names of all meta-annotation
 	 * types <em>present</em> on the annotation (of the specified
 	 * {@code annotationName}) on the supplied {@link AnnotatedElement}.
@@ -217,7 +218,7 @@ public class AnnotatedElementUtils {
 		return hasMetaAnnotationTypes(element, annotationType, null);
 	}
 
-	/**
+	/** 确定所提供的AnnotatedElement注释是否使用组合注释进行批注，该批注使用指定 annotationName的注释进行元批注
 	 * Determine if the supplied {@link AnnotatedElement} is annotated with a
 	 * <em>composed annotation</em> that is meta-annotated with an annotation
 	 * of the specified {@code annotationName}.
@@ -331,8 +332,10 @@ public class AnnotatedElementUtils {
 			AnnotatedElement element, Class<? extends Annotation> annotationType) {
 
 		Assert.notNull(annotationType, "'annotationType' must not be null");
+		//按语义查找到指定的注解
 		AnnotationAttributes attributes = searchWithGetSemantics(element, annotationType, null,
 				new MergedAnnotationAttributesProcessor());
+		//在注解修饰的类上 为寻找的注解属性赋值
 		AnnotationUtils.postProcessAnnotationAttributes(element, attributes, false, false);
 		return attributes;
 	}
@@ -391,6 +394,7 @@ public class AnnotatedElementUtils {
 		Assert.hasLength(annotationName, "'annotationName' must not be null or empty");
 		AnnotationAttributes attributes = searchWithGetSemantics(element, null, annotationName,
 				new MergedAnnotationAttributesProcessor(classValuesAsString, nestedAnnotationsAsMap));
+		//针对 @AliasFor 修饰的别名属性 处理属性值
 		AnnotationUtils.postProcessAnnotationAttributes(element, attributes, classValuesAsString, nestedAnnotationsAsMap);
 		return attributes;
 	}
@@ -904,6 +908,9 @@ public class AnnotatedElementUtils {
 	}
 
 	/**
+	 * 只在当前注解元素上做层次查询，查询优先级 declaredAnnotations > getAnnotations ,同时会递归查询元注解，解决可重复的注解，不会查询父类和接口
+	 * processor 相当于是搜索里的处理器，相同的按语义的逻辑搜索，但是可以处理不同的逻辑
+	 * 执行方法的搜索算法，通过跟踪已访问的注释元素来避免无休止的searchWithGetSemantics递归
 	 * Perform the search algorithm for the {@link #searchWithGetSemantics}
 	 * method, avoiding endless recursion by tracking which annotated elements
 	 * have already been <em>visited</em>.
@@ -931,12 +938,13 @@ public class AnnotatedElementUtils {
 			try {
 				// Start searching within locally declared annotations
 				List<Annotation> declaredAnnotations = Arrays.asList(element.getDeclaredAnnotations());
+				//遍历该注解元素上的注解
 				T result = searchWithGetSemanticsInAnnotations(element, declaredAnnotations,
 						annotationType, annotationName, containerType, processor, visited, metaDepth);
 				if (result != null) {
 					return result;
 				}
-
+				//类上的注解 是支持继承，所有要在用户getAnnotations获取继承而来的注解 并查询
 				if (element instanceof Class) {  // otherwise getAnnotations does not return anything new
 					List<Annotation> inheritedAnnotations = new ArrayList<Annotation>();
 					for (Annotation annotation : element.getAnnotations()) {
@@ -991,7 +999,9 @@ public class AnnotatedElementUtils {
 		// Search in annotations
 		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> currentAnnotationType = annotation.annotationType();
+			// 排除java lang 包里中的注解
 			if (!AnnotationUtils.isInJavaLangAnnotationPackage(currentAnnotationType)) {
+				//是否搜索判断，注解类型 > 注解名 > 处理器是否跳过判断，直接都交由处理器处理
 				if (currentAnnotationType == annotationType ||
 						currentAnnotationType.getName().equals(annotationName) ||
 						processor.alwaysProcesses()) {
@@ -1005,7 +1015,7 @@ public class AnnotatedElementUtils {
 						}
 					}
 				}
-				// Repeatable annotations in container?
+				// Repeatable annotations in container?如果是@Repeatable 修饰的注解容器
 				else if (currentAnnotationType == containerType) {
 					for (Annotation contained : getRawAnnotationsFromContainer(element, annotation)) {
 						T result = processor.process(element, contained, metaDepth);
@@ -1019,10 +1029,11 @@ public class AnnotatedElementUtils {
 			}
 		}
 
-		// Recursively search in meta-annotations
+		// Recursively search in meta-annotations 在元注解中递归查找
 		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> currentAnnotationType = annotation.annotationType();
 			if (!AnnotationUtils.isInJavaLangAnnotationPackage(currentAnnotationType)) {
+				//向上查找，路径层次+1
 				T result = searchWithGetSemantics(currentAnnotationType, annotationType,
 						annotationName, containerType, processor, visited, metaDepth + 1);
 				if (result != null) {
@@ -1575,6 +1586,13 @@ public class AnnotatedElementUtils {
 					this.classValuesAsString, this.nestedAnnotationsAsMap);
 		}
 
+		/**
+		 * @param element the element that is annotated with the
+		 * supplied annotation, used for contextual logging; may be
+		 * {@code null} if unknown
+		 * @param annotation the annotation to post-process
+		 * @param attributes the result to post-process
+		 */
 		@Override
 		public void postProcess(AnnotatedElement element, Annotation annotation, AnnotationAttributes attributes) {
 			annotation = AnnotationUtils.synthesizeAnnotation(annotation, element);
@@ -1584,8 +1602,10 @@ public class AnnotatedElementUtils {
 			// circuit the search algorithms.
 			Set<String> valuesAlreadyReplaced = new HashSet<String>();
 
+			//获取该注解的声明的属性方法
 			for (Method attributeMethod : AnnotationUtils.getAttributeMethods(annotation.annotationType())) {
 				String attributeName = attributeMethod.getName();
+				//查找该属性 是否覆盖指定的目标注解类型
 				String attributeOverrideName = AnnotationUtils.getAttributeOverrideName(attributeMethod, targetAnnotationType);
 
 				// Explicit annotation attribute override declared via @AliasFor
@@ -1608,10 +1628,11 @@ public class AnnotatedElementUtils {
 							}
 						}
 					}
-
+					//此处有问题,如果jvm 返回的属性方法顺序不一样，覆盖得到的结果也会不同
 					overrideAttributes(element, annotation, attributes, attributeName, targetAttributeNames);
 				}
-				// Implicit annotation attribute override based on convention
+				// Implicit annotation attribute override based on convention，基于约定的隐式注释属性覆盖
+				//非value 属性名，如果需要类上注解属性名在待处理的属性attributes中,从类上直接注解获取该属性值覆盖
 				else if (!AnnotationUtils.VALUE.equals(attributeName) && attributes.containsKey(attributeName)) {
 					overrideAttribute(element, annotation, attributes, attributeName, attributeName);
 				}
