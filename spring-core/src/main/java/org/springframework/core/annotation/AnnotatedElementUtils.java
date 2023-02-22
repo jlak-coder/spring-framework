@@ -1221,6 +1221,7 @@ public class AnnotatedElementUtils {
 							break;
 						}
 						try {
+							//在方法上查找，寻找父类的等效方法
 							Method equivalentMethod = clazz.getDeclaredMethod(method.getName(), method.getParameterTypes());
 							Method resolvedEquivalentMethod = BridgeMethodResolver.findBridgedMethod(equivalentMethod);
 							result = searchWithFindSemantics(resolvedEquivalentMethod, annotationType, annotationName,

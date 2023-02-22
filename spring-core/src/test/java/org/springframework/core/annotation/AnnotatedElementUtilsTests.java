@@ -523,16 +523,19 @@ public class AnnotatedElementUtilsTests {
 	@Test
 	public void getMergedAnnotationAttributesWithInvalidConventionBasedComposedAnnotation() {
 		Class<?> element = InvalidConventionBasedComposedContextConfigClass.class;
-		//exception.expect(AnnotationConfigurationException.class);
-		//exception.expectMessage(either(containsString("attribute 'value' and its alias 'locations'")).or(
-				//containsString("attribute 'locations' and its alias 'value'")));
-		//exception.expectMessage(either(
-				//containsString("values of [{duplicateDeclaration}] and [{requiredLocationsDeclaration}]")).or(
-				//containsString("values of [{requiredLocationsDeclaration}] and [{duplicateDeclaration}]")));
-		//exception.expectMessage(containsString("but only one is permitted"));
+		exception.expect(AnnotationConfigurationException.class);
+		exception.expectMessage(either(containsString("attribute 'value' and its alias 'locations'")).or(
+				containsString("attribute 'locations' and its alias 'value'")));
+		exception.expectMessage(either(
+				containsString("values of [{duplicateDeclaration}] and [{requiredLocationsDeclaration}]")).or(
+				containsString("values of [{requiredLocationsDeclaration}] and [{duplicateDeclaration}]")));
+		exception.expectMessage(containsString("but only one is permitted"));
 		getMergedAnnotationAttributes(element, ContextConfig.class);
 	}
 
+	/**
+	 * 获取具有覆盖别名组合批注的合并批注属性
+	 */
 	@Test
 	public void getMergedAnnotationAttributesWithShadowedAliasComposedAnnotation() {
 		Class<?> element = ShadowedAliasComposedContextConfigClass.class;
@@ -545,42 +548,66 @@ public class AnnotatedElementUtilsTests {
 		assertArrayEquals("value", expected, attributes.getStringArray("value"));
 	}
 
+	/**
+	 * 在继承的注释界面上查找合并的注释属性，如果是类，先接口后找父类
+	 */
 	@Test
 	public void findMergedAnnotationAttributesOnInheritedAnnotationInterface() {
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(InheritedAnnotationInterface.class, Transactional.class);
 		assertNotNull("Should find @Transactional on InheritedAnnotationInterface", attributes);
 	}
 
+	/**
+	 * 在子继承注释接口上查找合并的注释属性
+	 */
 	@Test
 	public void findMergedAnnotationAttributesOnSubInheritedAnnotationInterface() {
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(SubInheritedAnnotationInterface.class, Transactional.class);
 		assertNotNull("Should find @Transactional on SubInheritedAnnotationInterface", attributes);
 	}
 
+	/**
+	 * 在超父类上查找
+	 */
 	@Test
 	public void findMergedAnnotationAttributesOnSubSubInheritedAnnotationInterface() {
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(SubSubInheritedAnnotationInterface.class, Transactional.class);
 		assertNotNull("Should find @Transactional on SubSubInheritedAnnotationInterface", attributes);
 	}
 
+
+	/** 查找 无Inherited 修饰的注解
+	 *
+	 * 在非继承的注释接口上查找合并的注释属性
+	 */
 	@Test
 	public void findMergedAnnotationAttributesOnNonInheritedAnnotationInterface() {
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(NonInheritedAnnotationInterface.class, Order.class);
 		assertNotNull("Should find @Order on NonInheritedAnnotationInterface", attributes);
 	}
 
+	/**
+	 * 在子非继承注释接口上查找合并的注释属性
+	 */
 	@Test
 	public void findMergedAnnotationAttributesOnSubNonInheritedAnnotationInterface() {
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(SubNonInheritedAnnotationInterface.class, Order.class);
 		assertNotNull("Should find @Order on SubNonInheritedAnnotationInterface", attributes);
 	}
 
+	/**
+	 * 在子子非继承注释接口上查找合并的注释属性
+	 */
 	@Test
 	public void findMergedAnnotationAttributesOnSubSubNonInheritedAnnotationInterface() {
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(SubSubNonInheritedAnnotationInterface.class, Order.class);
 		assertNotNull("Should find @Order on SubSubNonInheritedAnnotationInterface", attributes);
 	}
 
+	/**
+	 * 查找从接口方法继承的合并注释属性，如果是方法现在方法上查找，再到该方法的接口上寻找，如果查到不到再到该接口定义类父类查找,后在接口查找
+	 * @throws NoSuchMethodException
+	 */
 	@Test
 	public void findMergedAnnotationAttributesInheritedFromInterfaceMethod() throws NoSuchMethodException {
 		Method method = ConcreteClassWithInheritedAnnotation.class.getMethod("handleFromInterface");
@@ -588,6 +615,10 @@ public class AnnotatedElementUtilsTests {
 		assertNotNull("Should find @Order on ConcreteClassWithInheritedAnnotation.handleFromInterface() method", attributes);
 	}
 
+	/**
+	 * 查找从抽象方法继承的合并注释属性
+	 * @throws NoSuchMethodException
+	 */
 	@Test
 	public void findMergedAnnotationAttributesInheritedFromAbstractMethod() throws NoSuchMethodException {
 		Method method = ConcreteClassWithInheritedAnnotation.class.getMethod("handle");
@@ -602,9 +633,11 @@ public class AnnotatedElementUtilsTests {
 	 * <em>equivalent</em> method in {@code AbstractClassWithInheritedAnnotation} for the <em>bridged</em>
 	 * {@code handleParameterized(String)} method.
 	 * @since 4.2
+	 * 查找从桥接方法继承的合并注释属性
 	 */
 	@Test
 	public void findMergedAnnotationAttributesInheritedFromBridgedMethod() throws NoSuchMethodException {
+		//获取实际方法
 		Method method = ConcreteClassWithInheritedAnnotation.class.getMethod("handleParameterized", String.class);
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(method, Transactional.class);
 		assertNull("Should not find @Transactional on bridged ConcreteClassWithInheritedAnnotation.handleParameterized()", attributes);
@@ -634,6 +667,8 @@ public class AnnotatedElementUtilsTests {
 		assertTrue(bridgeMethod != null && bridgeMethod.isBridge());
 		assertTrue(bridgedMethod != null && !bridgedMethod.isBridge());
 
+		//桥接和被桥接方法上的直接注解是相同的
+		//AnnotationAttributes attributes = findMergedAnnotationAttributes(bridgedMethod, Order.class);
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(bridgeMethod, Order.class);
 		assertNotNull("Should find @Order on StringGenericParameter.getFor() bridge method", attributes);
 	}
@@ -1057,6 +1092,9 @@ public class AnnotatedElementUtilsTests {
 	 * attribute (which cannot be set via the composed annotation anyway).
 	 *
 	 * If 'value' were not shadowed, such a declaration would not make sense.
+	 *
+	 * 注解ShadowedAliasComposedContextConfig 是 ContextConfig源注解的 显示别名,
+	 * getMergedAnnotationAttributes 按约定非value 属性的别名会优先覆盖
 	 */
 	@ContextConfig(value = "duplicateDeclaration")
 	@Retention(RetentionPolicy.RUNTIME)
@@ -1220,6 +1258,10 @@ public class AnnotatedElementUtilsTests {
 		public void handle() {
 		}
 
+		/**
+		 * 范型 实现方法，会在该类生成桥接方法
+		 * @param s
+		 */
 		@Override
 		public void handleParameterized(String s) {
 		}
