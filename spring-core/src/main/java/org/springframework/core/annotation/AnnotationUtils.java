@@ -2198,6 +2198,7 @@ public abstract class AnnotationUtils {
 
 		private void validate() {
 			// Target annotation is not meta-present?
+			//引用的目标元注释 必须存在于声明 @AliasFor的注释类上
 			if (!this.isAliasPair && !isAnnotationMetaPresent(this.sourceAnnotationType, this.aliasedAnnotationType)) {
 				String msg = String.format("@AliasFor declaration on attribute '%s' in annotation [%s] declares " +
 						"an alias for attribute '%s' in meta-annotation [%s] which is not meta-present.",
@@ -2298,7 +2299,9 @@ public abstract class AnnotationUtils {
 		 * @see #isOverrideFor
 		 */
 		private boolean isAliasFor(AliasDescriptor otherDescriptor) {
+			//按覆盖传递关系，遍历被其覆盖的属性
 			for (AliasDescriptor lhs = this; lhs != null; lhs = lhs.getAttributeOverrideDescriptor()) {
+				//遍历目标注解属性描述器的覆盖传递关系，如果都是同一个属性的覆盖，则目标属性被该别名属性隐式覆盖
 				for (AliasDescriptor rhs = otherDescriptor; rhs != null; rhs = rhs.getAttributeOverrideDescriptor()) {
 					if (lhs.aliasedAttribute.equals(rhs.aliasedAttribute)) {
 						return true;
@@ -2309,9 +2312,7 @@ public abstract class AnnotationUtils {
 		}
 
 		/**
-		 * AliasDescriptor 查询该注解  的别名属性名
-		 * 即  该注解属性方法是否是该注解其他属性的隐式别名
-		 * 返回这些属性名
+		 * 获取该属性 的别名属性
 		 * @return
 		 */
 		public List<String> getAttributeAliasNames() {
@@ -2375,7 +2376,7 @@ public abstract class AnnotationUtils {
 
 		/**
 		 * Get the name of the aliased attribute configured via the supplied
-		 * {@link AliasFor @AliasFor} annotation on the supplied {@code attribute},
+		 * AliasFor annotation on the supplied attribute,
 		 * or the original attribute if no aliased one specified (indicating that
 		 * the reference goes to a same-named attribute on a meta-annotation).
 		 * <p>This method returns the value of either the {@code attribute}

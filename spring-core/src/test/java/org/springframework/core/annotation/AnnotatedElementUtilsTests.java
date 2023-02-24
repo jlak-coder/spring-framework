@@ -680,6 +680,9 @@ public class AnnotatedElementUtilsTests {
 		assertEquals("TX qualifier for MetaAndLocalTxConfigClass.", "localTxMgr", attributes.getString("qualifier"));
 	}
 
+	/**
+	 * 查找并合成类上的注释属性，并在目标注释中使用属性别名
+	 */
 	@Test
 	public void findAndSynthesizeAnnotationAttributesOnClassWithAttributeAliasesInTargetAnnotation() {
 		String qualifier = "aliasForQualifier";
@@ -701,6 +704,9 @@ public class AnnotatedElementUtilsTests {
 		assertEquals("TX qualifier via synthesized annotation.", qualifier, annotation.qualifier());
 	}
 
+	/**
+	 * 查找类上的合并批注属性，并在组合批注中查找属性别名，在目标批注中查找嵌套批注
+	 */
 	@Test
 	public void findMergedAnnotationAttributesOnClassWithAttributeAliasInComposedAnnotationAndNestedAnnotationsInTargetAnnotation() {
 		AnnotationAttributes attributes = assertComponentScanAttributes(TestComponentScanClass.class, "com.example.app.test");
@@ -716,17 +722,26 @@ public class AnnotatedElementUtilsTests {
 	 * This test ensures that {@link AnnotationUtils#postProcessAnnotationAttributes}
 	 * uses {@code ObjectUtils.nullSafeEquals()} to check for equality between annotation
 	 * attributes since attributes may be arrays.
+	 *
+	 *
+	 * 查找类上的合并注释属性，并声明了别名对的两个属性
 	 */
 	@Test
 	public void findMergedAnnotationAttributesOnClassWithBothAttributesOfAnAliasPairDeclared() {
 		assertComponentScanAttributes(ComponentScanWithBasePackagesAndValueAliasClass.class, "com.example.app.test");
 	}
 
+	/**
+	 * 查找具有单个元素的合并注释属性，通过约定覆盖数组
+	 */
 	@Test
 	public void findMergedAnnotationAttributesWithSingleElementOverridingAnArrayViaConvention() {
 		assertComponentScanAttributes(ConventionBasedSinglePackageComponentScanClass.class, "com.example.app.test");
 	}
 
+	/**
+	 * 查找具有单个元素的合并注释属性，通过别名覆盖数组
+	 */
 	@Test
 	public void findMergedAnnotationAttributesWithSingleElementOverridingAnArrayViaAliasFor() {
 		assertComponentScanAttributes(AliasForBasedSinglePackageComponentScanClass.class, "com.example.app.test");
@@ -747,6 +762,9 @@ public class AnnotatedElementUtilsTests {
 		return AnnotatedElementUtils.findMergedAnnotationAttributes(element, annotationType.getName(), false, false);
 	}
 
+	/**
+	 * 在目标批注中查找具有属性别名的合并批注
+	 */
 	@Test
 	public void findMergedAnnotationWithAttributeAliasesInTargetAnnotation() {
 		Class<?> element = AliasedTransactionalComponentClass.class;
@@ -756,6 +774,9 @@ public class AnnotatedElementUtilsTests {
 		assertEquals("TX qualifier via synthesized annotation.", "aliasForQualifier", annotation.qualifier());
 	}
 
+	/**
+	 * 查找具有冲突属性名称的多个元注释的合并注释
+	 */
 	@Test
 	public void findMergedAnnotationForMultipleMetaAnnotationsWithClashingAttributeNames() {
 		String[] xmlLocations = asArray("test.xml");
@@ -780,6 +801,9 @@ public class AnnotatedElementUtilsTests {
 		assertArrayEquals("value", propFiles, testPropSource.value());
 	}
 
+	/**
+	 * 查找与元注释中的属性冲突的本地别名的合并注释
+	 */
 	@Test
 	public void findMergedAnnotationWithLocalAliasesThatConflictWithAttributesInMetaAnnotationByConvention() {
 		final String[] EMPTY = new String[0];
@@ -793,11 +817,19 @@ public class AnnotatedElementUtilsTests {
 		assertArrayEquals("classes for " + element, new Class<?>[] {Number.class}, contextConfig.classes());
 	}
 
+	/**
+	 * 查找具有单个元素的合并注释，通过约定覆盖数组
+	 * @throws Exception
+	 */
 	@Test
 	public void findMergedAnnotationWithSingleElementOverridingAnArrayViaConvention() throws Exception {
 		assertWebMapping(WebController.class.getMethod("postMappedWithPathAttribute"));
 	}
 
+	/**
+	 * 查找具有单个元素的合并注释，通过别名覆盖数组
+	 * @throws Exception
+	 */
 	@Test
 	public void findMergedAnnotationWithSingleElementOverridingAnArrayViaAliasFor() throws Exception {
 		assertWebMapping(WebController.class.getMethod("getMappedWithValueAttribute"));
@@ -811,6 +843,10 @@ public class AnnotatedElementUtilsTests {
 		assertArrayEquals("path attribute: ", asArray("/test"), webMapping.path());
 	}
 
+	/**
+	 * java lang 注释类型通过查找合并注释
+	 * @throws Exception
+	 */
 	@Test
 	public void javaLangAnnotationTypeViaFindMergedAnnotation() throws Exception {
 		Constructor<?> deprecatedCtor = Date.class.getConstructor(String.class);
@@ -818,12 +854,20 @@ public class AnnotatedElementUtilsTests {
 		assertEquals(Date.class.getAnnotation(Deprecated.class), findMergedAnnotation(Date.class, Deprecated.class));
 	}
 
+	/**
+	 * javax 注释类型通过查找合并注释
+	 * @throws Exception
+	 */
 	@Test
 	public void javaxAnnotationTypeViaFindMergedAnnotation() throws Exception {
 		assertEquals(ResourceHolder.class.getAnnotation(Resource.class), findMergedAnnotation(ResourceHolder.class, Resource.class));
 		assertEquals(SpringAppConfigClass.class.getAnnotation(Resource.class), findMergedAnnotation(SpringAppConfigClass.class, Resource.class));
 	}
 
+	/**
+	 * 获取带有接口的上所有合并的注释
+	 * @throws Exception
+	 */
 	@Test
 	public void getAllMergedAnnotationsOnClassWithInterface() throws Exception {
 		Method m = TransactionalServiceImpl.class.getMethod("doIt");
@@ -1123,7 +1167,7 @@ public class AnnotatedElementUtilsTests {
 		@AliasFor(annotation = ContextConfig.class, attribute = "locations")
 		String[] locations() default {};
 
-		@AliasFor("value")
+		@AliasFor("value") //classes 和 value 为别名对，但是没有显示覆盖ContextConfig,findMergedAnnotationAttributes 会隐式覆盖
 		Class<?>[] classes() default {};
 
 		@AliasFor("classes")
@@ -1152,6 +1196,9 @@ public class AnnotatedElementUtilsTests {
 		String pattern();
 	}
 
+	/**
+	 * TestComponentScan.packages  是元注解ComponentScan 的别名，同时覆盖ComponentScan的basePackages 的属性以及其别名属性
+	 */
 	@ComponentScan(excludeFilters = {@Filter(pattern = "*Test"), @Filter(pattern = "*Tests")})
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface TestComponentScan {
@@ -1164,10 +1211,11 @@ public class AnnotatedElementUtilsTests {
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface ConventionBasedSinglePackageComponentScan {
 
+		/** 单个stirng 会转化成数组，按约定basePackages 属性名 basePackages 相同。并覆盖ComponentScan 属性*/
 		String basePackages();
 	}
 
-	@ComponentScan
+	@ComponentScan(value = {"AliasFor","AliasFor1"},basePackages = {"AliasFor2","AliasFor1"})
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface AliasForBasedSinglePackageComponentScan {
 

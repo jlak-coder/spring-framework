@@ -2363,7 +2363,7 @@ public class AnnotationUtilsTests {
 	/**
 	 * 元注释中属性的显式别名 @AliasedComposedContextConfig 对ContextConfig的别名
 	 */
-	@ContextConfig
+	//@ContextConfig
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface AliasedComposedContextConfig {
 

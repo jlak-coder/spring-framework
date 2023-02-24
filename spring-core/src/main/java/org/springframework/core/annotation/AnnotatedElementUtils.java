@@ -1129,6 +1129,7 @@ public class AnnotatedElementUtils {
 
 		if (visited.add(element)) {
 			try {
+				//现在本地声明的注解上寻找，忽略 带有可继承@Inherited的注解
 				// Locally declared annotations (ignoring @Inherited)
 				Annotation[] annotations = element.getDeclaredAnnotations();
 				if (annotations.length > 0) {
@@ -1165,7 +1166,7 @@ public class AnnotatedElementUtils {
 						}
 					}
 
-					// Recursively search in meta-annotations
+					// Recursively search in meta-annotations 在元注解上递归查找
 					for (Annotation annotation : annotations) {
 						Class<? extends Annotation> currentAnnotationType = annotation.annotationType();
 						if (!AnnotationUtils.isInJavaLangAnnotationPackage(currentAnnotationType)) {
@@ -1620,6 +1621,7 @@ public class AnnotatedElementUtils {
 					valuesAlreadyReplaced.add(attributeOverrideName);
 
 					// Ensure all aliased attributes in the target annotation are overridden. (SPR-14069)
+					//确保覆盖目标批注中的所有被别名属性值被重写
 					List<String> aliases = AnnotationUtils.getAttributeAliasMap(targetAnnotationType).get(attributeOverrideName);
 					if (aliases != null) {
 						for (String alias : aliases) {
