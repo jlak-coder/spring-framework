@@ -28,6 +28,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
+ *
+ * 从自定义集合属性 中按照注解的别名 提取属性值
  * Implementation of the {@link AnnotationAttributeExtractor} strategy that
  * is backed by a {@link Map}.
  *

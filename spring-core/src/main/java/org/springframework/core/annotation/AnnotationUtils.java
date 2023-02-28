@@ -1321,7 +1321,7 @@ public abstract class AnnotationUtils {
 				}
 				Object value = attributes.get(attributeName);
 				boolean valuePresent = (value != null && !(value instanceof DefaultValueHolder));
-				for (String aliasedAttributeName : aliasMap.get(attributeName)) {
+				for (String aliasedAttributeName : aliasMap.get(attributeName)) {//获取该注解该属性的其他别名
 					if (valuesAlreadyReplaced.contains(aliasedAttributeName)) {
 						continue;
 					}

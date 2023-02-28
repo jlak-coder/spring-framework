@@ -42,6 +42,12 @@ import static org.springframework.core.annotation.AnnotationUtilsTests.*;
 @SuppressWarnings("serial")
 public class MapAnnotationAttributeExtractorTests extends AbstractAliasAwareAnnotationAttributeExtractorTestCase {
 
+	/**
+	 * @param clazz
+	 * @param expected
+	 * @param annotationType
+	 * @return
+	 */
 	@Override
 	protected AnnotationAttributeExtractor<?> createExtractorFor(Class<?> clazz, String expected, Class<? extends Annotation> annotationType) {
 		Map<String, Object> attributes = Collections.singletonMap(expected, expected);
