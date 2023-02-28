@@ -1737,6 +1737,7 @@ public abstract class AnnotationUtils {
 	 * @see SynthesizedAnnotation
 	 * @see SynthesizedAnnotationInvocationHandler
 	 */
+	 //	 配置为@AliasFor别名对的任何属性，或者注释使用的任何嵌套批注声明了此类别名对，则该批注是可合成的
 	@SuppressWarnings("unchecked")
 	private static boolean isSynthesizable(Class<? extends Annotation> annotationType) {
 		Boolean synthesizable = synthesizableCache.get(annotationType);
@@ -2198,7 +2199,7 @@ public abstract class AnnotationUtils {
 
 		private void validate() {
 			// Target annotation is not meta-present?
-			//引用的目标元注释 必须存在于声明 @AliasFor的注释类上
+			//引用的目标元注释 必须存在于声明 @AliasFor的注释类上,向上寻找才会构造传递性
 			if (!this.isAliasPair && !isAnnotationMetaPresent(this.sourceAnnotationType, this.aliasedAnnotationType)) {
 				String msg = String.format("@AliasFor declaration on attribute '%s' in annotation [%s] declares " +
 						"an alias for attribute '%s' in meta-annotation [%s] which is not meta-present.",
@@ -2208,6 +2209,7 @@ public abstract class AnnotationUtils {
 			}
 
 			if (this.isAliasPair) {
+				//如果是别名对
 				AliasFor mirrorAliasFor = this.aliasedAttribute.getAnnotation(AliasFor.class);
 				//镜像别名不存在
 				if (mirrorAliasFor == null) {
@@ -2217,7 +2219,7 @@ public abstract class AnnotationUtils {
 				}
 
 				String mirrorAliasedAttributeName = getAliasedAttributeName(mirrorAliasFor, this.aliasedAttribute);
-				//镜像别名的属性名如果和源属性名不同，不能互为别名
+				//互为别名对的两个别名，源属性 和 被别名的属性被别名指向的属性名应相同，满足相互别名
 				if (!this.sourceAttributeName.equals(mirrorAliasedAttributeName)) {
 					String msg = String.format("Attribute '%s' in annotation [%s] must be declared as an @AliasFor [%s], not [%s].",
 							this.aliasedAttributeName, this.sourceAnnotationType.getName(), this.sourceAttributeName,
@@ -2226,6 +2228,7 @@ public abstract class AnnotationUtils {
 				}
 			}
 
+			/**对属性返回值的判断，应该相同*/
 			Class<?> returnType = this.sourceAttribute.getReturnType();
 			Class<?> aliasedReturnType = this.aliasedAttribute.getReturnType();
 			if (returnType != aliasedReturnType &&
@@ -2238,6 +2241,7 @@ public abstract class AnnotationUtils {
 			}
 
 			if (this.isAliasPair) {
+				//如果是别名对，检验默认值的配置
 				validateDefaultValueConfiguration(this.aliasedAttribute);
 			}
 		}
@@ -2251,6 +2255,7 @@ public abstract class AnnotationUtils {
 			Object defaultValue = this.sourceAttribute.getDefaultValue();
 			Object aliasedDefaultValue = aliasedAttribute.getDefaultValue();
 
+			//默认值都不为空
 			if (defaultValue == null || aliasedDefaultValue == null) {
 				String msg = String.format("Misconfigured aliases: attribute '%s' in annotation [%s] " +
 						"and attribute '%s' in annotation [%s] must declare default values.",
@@ -2258,7 +2263,7 @@ public abstract class AnnotationUtils {
 						aliasedAttribute.getDeclaringClass().getName());
 				throw new AnnotationConfigurationException(msg);
 			}
-
+			//注解默认值 和 别名默认值应相同
 			if (!ObjectUtils.nullSafeEquals(defaultValue, aliasedDefaultValue)) {
 				String msg = String.format("Misconfigured aliases: attribute '%s' in annotation [%s] " +
 						"and attribute '%s' in annotation [%s] must declare the same default value.",

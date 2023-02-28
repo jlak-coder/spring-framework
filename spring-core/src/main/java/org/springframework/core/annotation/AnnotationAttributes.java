@@ -429,6 +429,7 @@ public class AnnotationAttributes extends LinkedHashMap<String, Object> {
 		Object value = get(attributeName);
 		assertAttributePresence(attributeName, value);
 		assertNotException(attributeName, value);
+		//范型 处理返回 单个对象 和 转换数组返回
 		if (!expectedType.isInstance(value) && expectedType.isArray() &&
 				expectedType.getComponentType().isInstance(value)) {
 			Object array = Array.newInstance(expectedType.getComponentType(), 1);

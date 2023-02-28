@@ -28,6 +28,7 @@ public class DefaultAnnotationAttributeExtractorTests extends AbstractAliasAware
 
 	@Override
 	protected AnnotationAttributeExtractor<?> createExtractorFor(Class<?> clazz, String expected, Class<? extends Annotation> annotationType) {
+		//默认注解属性提取器
 		return new DefaultAnnotationAttributeExtractor(clazz.getAnnotation(annotationType), clazz);
 	}
 

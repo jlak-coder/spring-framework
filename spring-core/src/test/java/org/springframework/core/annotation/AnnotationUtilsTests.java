@@ -2403,7 +2403,7 @@ public class AnnotationUtilsTests {
 	}
 
 	// Attribute value intentionally matches attribute name:
-	@ImplicitAliasesContextConfig(groovyScript = "groovyScript")
+	@ImplicitAliasesContextConfig(groovyScript = "groovyScript",xmlFile = "xmlFile")
 	static class GroovyImplicitAliasesContextConfigClass {
 	}
 
@@ -2553,10 +2553,10 @@ public class AnnotationUtilsTests {
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface TransitiveImplicitAliasesForAliasPairContextConfig {
 
-		@AliasFor(annotation = ImplicitAliasesForAliasPairContextConfig.class, attribute = "xmlFile")
+		@AliasFor(annotation = ContextConfig.class, attribute = "location")
 		String xml() default "";
 
-		@AliasFor(annotation = ImplicitAliasesForAliasPairContextConfig.class, attribute = "groovyScript")
+		@AliasFor(annotation = ContextConfig.class, attribute = "value")
 		String groovy() default "";
 	}
 
