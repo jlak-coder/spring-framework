@@ -165,6 +165,7 @@ public class AnnotationAttributesTests {
 
 		attributes = new AnnotationAttributes(ImplicitAliasesContextConfig.class);
 		attributes.put("value", value);
+		//
 		AnnotationUtils.postProcessAnnotationAttributes(null, attributes, false);
 		aliases.stream().forEach(alias -> assertEquals(value, attributes.getString(alias)));
 
@@ -174,7 +175,8 @@ public class AnnotationAttributesTests {
 		aliases.stream().forEach(alias -> assertEquals(value, attributes.getString(alias)));
 
 		attributes = new AnnotationAttributes(ImplicitAliasesContextConfig.class);
-		attributes.put("value", value);
+		//attributes.put("value", "value");注解上相互覆盖 的别名只能设置一个
+		attributes.put("value",value);
 		attributes.put("location1", value);
 		attributes.put("xmlFile", value);
 		attributes.put("groovyScript", value);

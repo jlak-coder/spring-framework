@@ -1103,6 +1103,7 @@ public abstract class AnnotationUtils {
 		return attributes;
 	}
 
+	//检索给定的注解的属性 以map的形式返回
 	/**
 	 * Retrieve the given annotation's attributes as an {@link AnnotationAttributes} map.
 	 * <p>This method provides fully recursive annotation reading capabilities on par with
@@ -1139,7 +1140,7 @@ public abstract class AnnotationUtils {
 
 		for (Method method : getAttributeMethods(annotationType)) {
 			try {
-				//method invoke
+				//method invoke 通过反射获取注解
 				Object attributeValue = method.invoke(annotation);
 				Object defaultValue = method.getDefaultValue();
 				if (defaultValue != null && ObjectUtils.nullSafeEquals(attributeValue, defaultValue)) {
@@ -1299,9 +1300,10 @@ public abstract class AnnotationUtils {
 	 * @see #retrieveAnnotationAttributes(Object, Annotation, boolean, boolean)
 	 * @see #getDefaultValue(Class, String)
 	 */
+	//后置 处理注解的属性值，如果
 	static void postProcessAnnotationAttributes(Object annotatedElement,
 			AnnotationAttributes attributes, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
-
+		//nestedAnnotationsAsMap 选择adaptValue 方法是将嵌套注解处理成map
 		// Abort?
 		if (attributes == null) {
 			return;
@@ -1314,24 +1316,31 @@ public abstract class AnnotationUtils {
 
 		if (!attributes.validated) {
 			// Validate @AliasFor configuration
+			//获取 待处理的注解的别名 map
 			Map<String, List<String>> aliasMap = getAttributeAliasMap(annotationType);
 			for (String attributeName : aliasMap.keySet()) {
+				// valuesAlreadyReplaced 记录已经替换的属性值，这样的设计 就可能导致首次有值的属性值的别名 会被覆盖，
+				//就是要保证 别名逻辑需要正确
 				if (valuesAlreadyReplaced.contains(attributeName)) {
 					continue;
 				}
 				Object value = attributes.get(attributeName);
 				boolean valuePresent = (value != null && !(value instanceof DefaultValueHolder));
-				for (String aliasedAttributeName : aliasMap.get(attributeName)) {//获取该注解该属性的其他别名
+				for (String aliasedAttributeName : aliasMap.get(attributeName)) {//获取可以为该注解提供别名覆盖的 其他注解
 					if (valuesAlreadyReplaced.contains(aliasedAttributeName)) {
 						continue;
 					}
 					Object aliasedValue = attributes.get(aliasedAttributeName);
+					//判断别名属性是否配置
 					boolean aliasPresent = (aliasedValue != null && !(aliasedValue instanceof DefaultValueHolder));
 					// Something to validate or replace with an alias?
 					if (valuePresent || aliasPresent) {
+						//相互覆盖值 只能设置一个覆盖和校验逻辑
+						//两个不能同时存在，且要相互覆盖
 						if (valuePresent && aliasPresent) {
 							// Since annotation attributes can be arrays, we must use ObjectUtils.nullSafeEquals().
 							if (!ObjectUtils.nullSafeEquals(value, aliasedValue)) {
+								//源属性值和别名属性值都设置了，冲突，只能设置一个
 								String elementAsString =
 										(annotatedElement != null ? annotatedElement.toString() : "unknown element");
 								throw new AnnotationConfigurationException(String.format(
@@ -1349,6 +1358,7 @@ public abstract class AnnotationUtils {
 							valuesAlreadyReplaced.add(attributeName);
 						}
 						else {
+							//互为别名，所以源别名值存在是，也会覆盖被别名的属性值
 							// Replace aliasedValue with value
 							attributes.put(aliasedAttributeName,
 									adaptValue(annotatedElement, value, classValuesAsString, nestedAnnotationsAsMap));
@@ -1793,6 +1803,7 @@ public abstract class AnnotationUtils {
 	 * @since 4.2
 	 * @see #getAttributeOverrideName(Method, Class)
 	 */
+	//获取提供的注解上 可以为该别名注解属性 提供别名支持素有别名注解
 	static List<String> getAttributeAliasNames(Method attribute) {
 		Assert.notNull(attribute, "attribute must not be null");
 		AliasDescriptor descriptor = AliasDescriptor.from(attribute);
@@ -2306,7 +2317,7 @@ public abstract class AnnotationUtils {
 		private boolean isAliasFor(AliasDescriptor otherDescriptor) {
 			//按覆盖传递关系，遍历被其覆盖的属性
 			for (AliasDescriptor lhs = this; lhs != null; lhs = lhs.getAttributeOverrideDescriptor()) {
-				//遍历目标注解属性描述器的覆盖传递关系，如果都是同一个属性的覆盖，则目标属性被该别名属性隐式覆盖
+				//遍历目标注解属性描述器的覆盖传递关系，如果都是同一个属性的覆盖,则该别名可覆盖目标别名
 				for (AliasDescriptor rhs = otherDescriptor; rhs != null; rhs = rhs.getAttributeOverrideDescriptor()) {
 					if (lhs.aliasedAttribute.equals(rhs.aliasedAttribute)) {
 						return true;
@@ -2330,7 +2341,7 @@ public abstract class AnnotationUtils {
 			// 搜索属性覆盖层次结构（从此描述符开始），传递隐式别名
 			List<String> aliases = new ArrayList<String>();
 			for (AliasDescriptor otherDescriptor : getOtherDescriptors()) {
-				//该别名是否也是其他别名的别名
+				//该别名是否是其他属性的别名
 				if (this.isAliasFor(otherDescriptor)) {
 					this.validateAgainst(otherDescriptor);
 					aliases.add(otherDescriptor.sourceAttributeName);

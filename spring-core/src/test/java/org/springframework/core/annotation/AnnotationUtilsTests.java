@@ -41,6 +41,7 @@ import static java.util.stream.Collectors.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.core.annotation.AnnotationUtils.*;
+import static org.springframework.core.annotation.AnnotationUtils.getAttributeAliasNames;
 
 /**
  * Unit tests for {@link AnnotationUtils}.
@@ -917,7 +918,6 @@ public class AnnotationUtilsTests {
 		System.out.println(getAttributeAliasNames(groovy));
 		assertThat(getAttributeAliasNames(xml), containsInAnyOrder("groovy"));
 		System.out.println(getAttributeAliasNames(xml));
-
 	}
 
 	/**
