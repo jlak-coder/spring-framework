@@ -457,6 +457,10 @@ public class AnnotatedElementUtils {
 	 * @see #getAllAnnotationAttributes(AnnotatedElement, String)
 	 * @see #findAllMergedAnnotations(AnnotatedElement, Class)
 	 */
+
+	//获取所提供element注释层次结构中指定的所有注释;对于找到的每个注释，
+	// 将该注释的属性与注释层次结构较低级别的注释中的匹配属性合并，
+	// 并将结果合成回指定annotationTyp注释的注释
 	public static <A extends Annotation> Set<A> getAllMergedAnnotations(AnnotatedElement element,
 			Class<A> annotationType) {
 

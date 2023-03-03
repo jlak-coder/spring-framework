@@ -46,16 +46,25 @@ import static org.springframework.core.annotation.AnnotatedElementUtils.*;
  */
 public class MultipleComposedAnnotationsOnSingleAnnotatedElementTests {
 
+	/**
+	 * 在类上获取多个组合注释
+	 */
 	@Test
 	public void getMultipleComposedAnnotationsOnClass() {
 		assertGetAllMergedAnnotationsBehavior(MultipleComposedCachesClass.class);
 	}
 
+	/**
+	 * 获取超类上的多个继承组合注释
+	 */
 	@Test
 	public void getMultipleInheritedComposedAnnotationsOnSuperclass() {
 		assertGetAllMergedAnnotationsBehavior(SubMultipleComposedCachesClass.class);
 	}
 
+	/**
+	 * 在本类上获取多个非继承的复合注释
+	 */
 	@Test
 	public void getMultipleNoninheritedComposedAnnotationsOnClass() {
 		Class<?> element = MultipleNoninheritedComposedCachesClass.class;
@@ -70,19 +79,31 @@ public class MultipleComposedAnnotationsOnSingleAnnotatedElementTests {
 		assertEquals("noninheritedCache2", cacheable2.value());
 	}
 
+	/**
+	 * 获取超类上的多个非继承组合注释
+	 */
 	@Test
 	public void getMultipleNoninheritedComposedAnnotationsOnSuperclass() {
 		Class<?> element = SubMultipleNoninheritedComposedCachesClass.class;
+		//getAllMergedAnnotations 只在当前类的注解 和可继承的注解上检索
 		Set<Cacheable> cacheables = getAllMergedAnnotations(element, Cacheable.class);
 		assertNotNull(cacheables);
 		assertEquals(0, cacheables.size());
 	}
 
+	/**
+	 * 在该类上获取组合加本地注释
+	 */
 	@Test
 	public void getComposedPlusLocalAnnotationsOnClass() {
 		assertGetAllMergedAnnotationsBehavior(ComposedPlusLocalCachesClass.class);
 	}
 
+	/**
+	 * 在接口上获取多个组合注释
+	 *
+	 * 接口类上 注解无法继承给实现类
+	 */
 	@Test
 	public void getMultipleComposedAnnotationsOnInterface() {
 		Class<MultipleComposedCachesOnInterfaceClass> element = MultipleComposedCachesOnInterfaceClass.class;
@@ -91,6 +112,10 @@ public class MultipleComposedAnnotationsOnSingleAnnotatedElementTests {
 		assertEquals(0, cacheables.size());
 	}
 
+	/**
+	 * 在方法上获取多个组合注释
+	 * @throws Exception
+	 */
 	@Test
 	public void getMultipleComposedAnnotationsOnMethod() throws Exception {
 		AnnotatedElement element = getClass().getDeclaredMethod("multipleComposedCachesMethod");
@@ -103,24 +128,39 @@ public class MultipleComposedAnnotationsOnSingleAnnotatedElementTests {
 		assertGetAllMergedAnnotationsBehavior(element);
 	}
 
+	/**
+	 * 在桥接方法上获取多个组合注释
+	 * java 8 后实现桥接方法不同，可能在桥接方法上无法寻找到对应的注解信息
+	 * 在测试版本上 桥接方法上的注解和被桥接方法一致
+	 * @throws Exception
+	 */
 	@Test
-	@Ignore("Disabled since some Java 8 updates handle the bridge method differently")
+	//@Ignore("Disabled since some Java 8 updates handle the bridge method differently")
 	public void getMultipleComposedAnnotationsOnBridgeMethod() throws Exception {
 		Set<Cacheable> cacheables = getAllMergedAnnotations(getBridgeMethod(), Cacheable.class);
 		assertNotNull(cacheables);
 		assertEquals(0, cacheables.size());
 	}
 
+	/**
+	 * 在类上查找多个组合注释
+	 */
 	@Test
 	public void findMultipleComposedAnnotationsOnClass() {
 		assertFindAllMergedAnnotationsBehavior(MultipleComposedCachesClass.class);
 	}
 
+	/**
+	 * 在超类上查找多个继承的组合注释 ，可继承的
+	 */
 	@Test
 	public void findMultipleInheritedComposedAnnotationsOnSuperclass() {
 		assertFindAllMergedAnnotationsBehavior(SubMultipleComposedCachesClass.class);
 	}
 
+	/**
+	 * 在该类上查找多个非继承的组合注释
+	 */
 	@Test
 	public void findMultipleNoninheritedComposedAnnotationsOnClass() {
 		Class<?> element = MultipleNoninheritedComposedCachesClass.class;
@@ -135,6 +175,9 @@ public class MultipleComposedAnnotationsOnSingleAnnotatedElementTests {
 		assertEquals("noninheritedCache2", cacheable2.value());
 	}
 
+	/**
+	 * 在超类上查找多个非继承的组合注释
+	 */
 	@Test
 	public void findMultipleNoninheritedComposedAnnotationsOnSuperclass() {
 		Class<?> element = SubMultipleNoninheritedComposedCachesClass.class;
@@ -149,33 +192,54 @@ public class MultipleComposedAnnotationsOnSingleAnnotatedElementTests {
 		assertEquals("noninheritedCache2", cacheable2.value());
 	}
 
+	/**
+	 * 在类上查找组合加本地注释
+	 */
 	@Test
 	public void findComposedPlusLocalAnnotationsOnClass() {
 		assertFindAllMergedAnnotationsBehavior(ComposedPlusLocalCachesClass.class);
 	}
 
+	/**
+	 * 在界面上查找多个组合注释
+	 */
 	@Test
 	public void findMultipleComposedAnnotationsOnInterface() {
 		assertFindAllMergedAnnotationsBehavior(MultipleComposedCachesOnInterfaceClass.class);
 	}
 
+	/**
+	 * 在接口上查找组合缓存，在类上查找本地缓存
+	 */
 	@Test
 	public void findComposedCacheOnInterfaceAndLocalCacheOnClass() {
 		assertFindAllMergedAnnotationsBehavior(ComposedCacheOnInterfaceAndLocalCacheClass.class);
 	}
 
+	/**
+	 * 在方法上查找多个组合注释
+	 * @throws Exception
+	 */
 	@Test
 	public void findMultipleComposedAnnotationsOnMethod() throws Exception {
 		AnnotatedElement element = getClass().getDeclaredMethod("multipleComposedCachesMethod");
 		assertFindAllMergedAnnotationsBehavior(element);
 	}
 
+	/**
+	 * 查找方法上的组合加本地注释
+	 * @throws Exception
+	 */
 	@Test
 	public void findComposedPlusLocalAnnotationsOnMethod() throws Exception {
 		AnnotatedElement element = getClass().getDeclaredMethod("composedPlusLocalCachesMethod");
 		assertFindAllMergedAnnotationsBehavior(element);
 	}
 
+	/**
+	 * 在桥接方法查找多个组合注释方法
+	 * @throws Exception
+	 */
 	@Test
 	public void findMultipleComposedAnnotationsOnBridgeMethod() throws Exception {
 		assertFindAllMergedAnnotationsBehavior(getBridgeMethod());
