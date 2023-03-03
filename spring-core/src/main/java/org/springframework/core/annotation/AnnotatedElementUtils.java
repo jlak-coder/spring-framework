@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.core.annotation.AnnotationUtils.*;
 
 /**
  * General utility methods for finding annotations, meta-annotations, and
@@ -530,9 +531,11 @@ public class AnnotatedElementUtils {
 		Assert.notNull(annotationType, "'annotationType' must not be null");
 
 		if (containerType == null) {
+			//获取注解上的ContainerType
 			containerType = resolveContainerType(annotationType);
 		}
 		else {
+			//这里是 类似jdk Repeatable 的语法校验
 			validateContainerType(annotationType, containerType);
 		}
 
@@ -1145,7 +1148,7 @@ public class AnnotatedElementUtils {
 									processor.alwaysProcesses()) {
 								T result = processor.process(element, annotation, metaDepth);
 								if (result != null) {
-									if (aggregatedResults != null && metaDepth == 0) {
+									if (aggregatedResults != null && metaDepth == 0) {//需要聚合结果 且 元注解深度为0
 										aggregatedResults.add(result);
 									}
 									else {
@@ -1342,6 +1345,8 @@ public class AnnotatedElementUtils {
 	 * is not a valid container annotation for the supplied {@code annotationType}
 	 * @since 4.3
 	 */
+	//验证所提供的 containerType 容器注释是否是所提供可重复对象的
+	// annotationType 正确容器注释（即，它声明了一个 value 包含 数组 annotationType的属性）
 	private static void validateContainerType(Class<? extends Annotation> annotationType,
 			Class<? extends Annotation> containerType) {
 
@@ -1369,7 +1374,7 @@ public class AnnotatedElementUtils {
 		Set<A> annotations = new LinkedHashSet<A>();
 		for (AnnotationAttributes attributes : aggregatedResults) {
 			AnnotationUtils.postProcessAnnotationAttributes(element, attributes, false, false);
-			annotations.add(AnnotationUtils.synthesizeAnnotation(attributes, annotationType, element));
+			annotations.add(AnnotationUtils.synthesizeAnnotation(attributes, annotationType, element));//合成注解
 		}
 		return annotations;
 	}

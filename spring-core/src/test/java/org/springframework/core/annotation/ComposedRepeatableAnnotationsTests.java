@@ -120,24 +120,36 @@ public class ComposedRepeatableAnnotationsTests {
 		assertEquals(0, annotations.size());
 	}
 
+	/**
+	 * 查找不可重复注释
+	 */
 	@Test
 	public void findNonRepeatableAnnotation() {
 		expectNonRepeatableAnnotation();
 		findMergedRepeatableAnnotations(getClass(), NonRepeatable.class);
 	}
 
+	/**
+	 * 查找无效的可重复批注容器缺失值属性
+	 */
 	@Test
 	public void findInvalidRepeatableAnnotationContainerMissingValueAttribute() {
 		expectContainerMissingValueAttribute();
 		findMergedRepeatableAnnotations(getClass(), InvalidRepeatable.class, ContainerMissingValueAttribute.class);
 	}
 
+	/**
+	 * 查找具有非数组值属性的无效可重复注释容器
+	 */
 	@Test
 	public void findInvalidRepeatableAnnotationContainerWithNonArrayValueAttribute() {
 		expectContainerWithNonArrayValueAttribute();
 		findMergedRepeatableAnnotations(getClass(), InvalidRepeatable.class, ContainerWithNonArrayValueAttribute.class);
 	}
 
+	/**
+	 * 查找具有数组值属性但组件类型错误的无效可重复注释容器
+	 */
 	@Test
 	public void findInvalidRepeatableAnnotationContainerWithArrayValueAttributeButWrongComponentType() {
 		expectContainerWithArrayValueAttributeButWrongComponentType();
@@ -145,26 +157,42 @@ public class ComposedRepeatableAnnotationsTests {
 			ContainerWithArrayValueAttributeButWrongComponentType.class);
 	}
 
+	/**
+	 * 断言查找可重复批注
+	 */
 	@Test
 	public void findRepeatableAnnotationsOnClass() {
 		assertFindRepeatableAnnotations(RepeatableClass.class);
 	}
 
+	/**
+	 * 断言查找可重复批注
+	 */
 	@Test
 	public void findRepeatableAnnotationsOnSuperclass() {
 		assertFindRepeatableAnnotations(SubRepeatableClass.class);
 	}
 
+	/**
+	 * 在类上查找组合的可重复注释
+	 * 别名覆盖
+	 */
 	@Test
 	public void findComposedRepeatableAnnotationsOnClass() {
 		assertFindRepeatableAnnotations(ComposedRepeatableClass.class);
 	}
 
+	/**
+	 * 查找与类上的容器混合的可重复组合注释
+	 */
 	@Test
 	public void findComposedRepeatableAnnotationsMixedWithContainerOnClass() {
 		assertFindRepeatableAnnotations(ComposedRepeatableMixedWithContainerClass.class);
 	}
 
+	/**
+	 * 在类上查找非继承的可重复注释
+	 */
 	@Test
 	public void findNoninheritedComposedRepeatableAnnotationsOnClass() {
 		Class<?> element = NoninheritedRepeatableClass.class;
@@ -172,6 +200,9 @@ public class ComposedRepeatableAnnotationsTests {
 		assertNoninheritedRepeatableAnnotations(annotations);
 	}
 
+	/**
+	 * 在超类上查找非继承组合可重复注释
+	 */
 	@Test
 	public void findNoninheritedComposedRepeatableAnnotationsOnSuperclass() {
 		Class<?> element = SubNoninheritedRepeatableClass.class;
@@ -179,6 +210,9 @@ public class ComposedRepeatableAnnotationsTests {
 		assertNoninheritedRepeatableAnnotations(annotations);
 	}
 
+	/**
+	 * 查找类上可重复注释的复合容器
+	 */
 	@Test
 	public void findComposedContainerForRepeatableAnnotationsOnClass() {
 		assertFindRepeatableAnnotations(ComposedContainerClass.class);

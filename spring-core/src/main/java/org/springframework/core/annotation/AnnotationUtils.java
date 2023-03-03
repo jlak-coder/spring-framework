@@ -1916,7 +1916,7 @@ public abstract class AnnotationUtils {
 	@SuppressWarnings("unchecked")
 	static Class<? extends Annotation> resolveContainerAnnotationType(Class<? extends Annotation> annotationType) {
 		try {
-			Annotation repeatable = getAnnotation(annotationType, REPEATABLE_CLASS_NAME);
+			Annotation repeatable = getAnnotation(annotationType, REPEATABLE_CLASS_NAME);//指定的注解上 可重复的注解
 			if (repeatable != null) {
 				Object value = getValue(repeatable);
 				return (Class<? extends Annotation>) value;
